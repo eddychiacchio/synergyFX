@@ -1,0 +1,274 @@
+package com.synergy.controller;
+
+import com.synergy.model.*;
+import com.synergy.util.DataManager;
+import com.synergy.factory.ActivityFactory;
+import java.util.List;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+
+
+public class ProjectController {
+
+    public void createProject(String name, String description, User creator) {
+        DataManager dm = DataManager.getInstance();
+        
+        int newId = dm.getProjects().size() + 1;
+        Project newProject = new Project(newId, name, description);
+        
+        ProjectMembership membership = new ProjectMembership();
+        membership.setProject(newProject);
+        membership.setUser(creator);
+        membership.setIsAdmin(true);
+        
+        newProject.getMemberships().add(membership);
+        
+        dm.getProjects().add(newProject);
+        dm.saveData();
+    }
+    
+    public Project getProjectById(int id) {
+        for (Project p : DataManager.getInstance().getProjects()) {
+            if (p.getId() == id) {
+                return p;
+            }
+        }
+        return null;
+    }
+    
+ // Metodo CREAZIONE con FACTORY METHOD
+    public void addActivityToProject(int projectId, String title, String priorityStr, String dateStr, String[] subTasks) {
+        DataManager dm = DataManager.getInstance();
+        Project p = getProjectById(projectId);
+        
+        if (p != null) {
+            // 1. Preparazione Dati (Il Controller gestisce solo il parsing HTTP/Input)
+            PriorityLevel priority = PriorityLevel.valueOf(priorityStr);
+            
+            LocalDate deadline = null;
+            if (dateStr != null && !dateStr.isEmpty()) {
+                deadline = LocalDate.parse(dateStr);
+            } else {
+                deadline = LocalDate.now().plusDays(7); // Default 1 settimana
+            }
+
+            // 2. USO DEL FACTORY METHOD
+            // Il Controller delega TUTTA la logica di creazione alla Factory.
+            // Non sa se sta ricevendo un SingleTask o un TaskGroup, e non gli interessa.
+            Activity newActivity = ActivityFactory.createActivity(title, priority, deadline, subTasks);
+            
+            // 3. Aggiungo al progetto
+            p.getActivities().add(newActivity);
+            
+            // 4. Notifico gli Observer (Utenti) - Pattern Observer
+            p.notifyObservers("Nuova attività aggiunta: " + title);
+            
+            // 5. Salvo
+            dm.saveData();
+        }
+    }
+    
+    // Metodo DELETE
+    public boolean deleteActivity(int projectId, int activityId) {
+        DataManager dm = DataManager.getInstance();
+        Project p = getProjectById(projectId);
+        
+        if (p != null) {
+            boolean removed = p.getActivities().removeIf(a -> a.getId() == activityId);
+            
+            if (removed) {
+                dm.saveData();
+                return true;
+            }
+            
+            for (Activity a : p.getActivities()) {
+                if (a instanceof TaskGroup) {
+                    TaskGroup group = (TaskGroup) a;
+                    boolean removedFromChild = group.getChildren().removeIf(child -> child.getId() == activityId);
+                    if (removedFromChild) {
+                        dm.saveData();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    // Metodo UPDATE (Status)
+    public boolean updateActivityStatus(int projectId, int activityId, String newStatusStr) {
+        DataManager dm = DataManager.getInstance();
+        Project p = getProjectById(projectId);
+        
+        if (p != null) {
+            for (Activity a : p.getActivities()) {
+                if (a.getId() == activityId) {
+                    a.setStatus(ActivityStatus.valueOf(newStatusStr));
+                    dm.saveData(); 
+                    return true;
+                }
+                if (a instanceof TaskGroup) {
+                    for (Activity child : ((TaskGroup) a).getChildren()) {
+                        if (child.getId() == activityId) {
+                            child.setStatus(ActivityStatus.valueOf(newStatusStr));
+                            dm.saveData();
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    // Metodo MODIFICA CONTENUTO
+    public void updateActivityContent(int projectId, int activityId, String title, String priorityStr, String dateStr, String[] subTasks) {
+        DataManager dm = DataManager.getInstance();
+        Project p = getProjectById(projectId);
+        
+        if (p != null) {
+            List<Activity> list = p.getActivities();
+            for (int i = 0; i < list.size(); i++) {
+                Activity a = list.get(i);
+                
+                if (a.getId() == activityId) {
+                    // Usa i setter che abbiamo aggiunto in Activity.java
+                    a.setTitle(title);
+                    a.setPriority(PriorityLevel.valueOf(priorityStr));
+                    
+                    if (dateStr != null && !dateStr.isEmpty()) {
+                        a.setDeadline(LocalDate.parse(dateStr));
+                    }
+
+                    boolean newSubtasksExist = (subTasks != null && subTasks.length > 0 && subTasks[0].trim().length() > 0);
+                    
+                    if (a instanceof TaskGroup) {
+                        TaskGroup group = (TaskGroup) a;
+                        group.getChildren().clear();
+                        
+                        if (newSubtasksExist) {
+                            int count = 1;
+                            for (String s : subTasks) {
+                                if (s != null && !s.trim().isEmpty()) {
+                                    int subId = (int)(System.currentTimeMillis() + count * 100);
+                                    SingleTask sub = new SingleTask(subId, s, PriorityLevel.valueOf(priorityStr));
+                                    sub.setDeadline(a.getDeadline()); 
+                                    group.addActivity(sub);
+                                    count++;
+                                }
+                            }
+                        }
+                    } else if (newSubtasksExist) {
+                        TaskGroup newGroup = new TaskGroup(a.getId(), title, PriorityLevel.valueOf(priorityStr));
+                        newGroup.setStatus(a.getStatus());
+                        newGroup.setDeadline(a.getDeadline()); 
+                        
+                        int count = 1;
+                        for (String s : subTasks) {
+                             if (s != null && !s.trim().isEmpty()) {
+                                int subId = (int)(System.currentTimeMillis() + count * 100);
+                                SingleTask sub = new SingleTask(subId, s, PriorityLevel.MEDIA);
+                                sub.setDeadline(a.getDeadline());
+                                newGroup.addActivity(sub);
+                                count++;
+                             }
+                        }
+                        list.set(i, newGroup);
+                    }
+                    
+                    dm.saveData();
+                    return;
+                }
+            }
+        }
+    }
+    
+    // --- GESTIONE TEAM ---
+    public boolean inviteUserToProject(int projectId, String userEmail) {
+        DataManager dm = DataManager.getInstance();
+        Project p = getProjectById(projectId);
+        
+        if (p == null) return false;
+        
+        // 1. Cerco l'utente nel database globale
+        User userfound = null;
+        for (User u : dm.getUsers()) {
+            if (u.getEmail().equalsIgnoreCase(userEmail)) {
+                userfound = u;
+                break;
+            }
+        }
+        
+        // Se l'utente non esiste, fallisco
+        if (userfound == null) {
+            System.out.println("Utente non trovato: " + userEmail);
+            return false;
+        }
+        
+        // 2. Controllo se è GIÀ membro del progetto
+        for (ProjectMembership pm : p.getMemberships()) {
+            if (pm.getUser().getId() == userfound.getId()) {
+                System.out.println("Utente già presente nel progetto.");
+                return false; 
+            }
+        }
+        
+        // 3. Creo la nuova membership (Ruolo default: MEMBER)
+        ProjectMembership membership = new ProjectMembership();
+        membership.setProject(p);
+        membership.setUser(userfound);
+        membership.setIsAdmin(false); // Solo chi crea è admin per ora
+        
+        // 4. Aggiungo e Salvo
+        p.getMemberships().add(membership);
+        dm.saveData();
+        
+        return true;
+    }
+    
+ // --- PATTERN STRATEGY ---
+    public List<Activity> getSortedActivities(int projectId, String sortType) {
+        Project p = getProjectById(projectId);
+        if (p == null) return new ArrayList<>();
+
+        // 1. Creo una COPIA della lista (per non modificare l'ordine salvato nel DB/File)
+        List<Activity> sortedList = new ArrayList<>(p.getActivities());
+
+        // 2. Scelgo la strategia (Context)
+        SortStrategy strategy;
+
+        if ("priority".equals(sortType)) {
+            strategy = new SortByPriority();
+        } else if ("deadline".equals(sortType)) {
+            strategy = new SortByDeadline();
+        } else {
+            // Default: nessun ordinamento particolare (ordine di creazione)
+            return sortedList;
+        }
+
+        // 3. Eseguo la strategia
+        strategy.sort(sortedList);
+
+        return sortedList;
+    }
+    
+ // Metodo FILTRATO: Restituisce solo i progetti dell'utente
+    public List<Project> getProjectsByUser(User user) {
+        List<Project> result = new ArrayList<>();
+        DataManager dm = DataManager.getInstance();
+        
+        // Scorro tutti i progetti del sistema
+        for (Project p : dm.getProjects()) {
+            // Per ogni progetto, controllo la lista dei membri
+            for (ProjectMembership pm : p.getMemberships()) {
+                // Se trovo l'ID dell'utente tra i membri...
+                if (pm.getUser().getId() == user.getId()) {
+                    result.add(p); // ...aggiungo il progetto alla lista
+                    break; // Passo al prossimo progetto
+                }
+            }
+        }
+        return result;
+    }
+}
