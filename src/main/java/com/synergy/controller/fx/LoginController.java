@@ -33,4 +33,9 @@ public class LoginController {
             errorLabel.setStyle("-fx-text-fill: red;");
         }
     }
+    
+    @FXML
+    private void goToRegister() throws IOException {
+        App.setRoot("register");
+    }
 }

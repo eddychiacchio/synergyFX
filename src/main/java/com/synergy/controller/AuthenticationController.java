@@ -3,19 +3,50 @@ package com.synergy.controller;
 import com.synergy.model.User;
 import com.synergy.util.DataManager;
 import java.util.List;
+import java.util.Random;
 
 public class AuthenticationController {
 
-    // Metodo che cerca l'utente nella lista caricata dal file
+    // Metodo LOGIN
     public User login(String email, String password) {
         List<User> users = DataManager.getInstance().getUsers();
         
-        for (User u : users) {
-            // Confronto email e password (nella realtà la password sarebbe hashata)
-            if (u.getEmail().equals(email) && u.getPassword().equals(password)) {
-                return u; // Trovato!
+        for (User user : users) {
+            // Confronto case-insensitive per l'email
+            if (user.getEmail().equalsIgnoreCase(email) && user.getPassword().equals(password)) {
+                return user;
             }
         }
-        return null; // Nessun utente trovato con queste credenziali
+        return null;
+    }
+
+    // --- METODO REGISTRAZIONE CORRETTO ---
+    public boolean register(String name, String email, String password) {
+        List<User> users = DataManager.getInstance().getUsers();
+
+        // 1. Controllo se l'email esiste già
+        for (User u : users) {
+            if (u.getEmail().equalsIgnoreCase(email)) {
+                return false; // Email già usata
+            }
+        }
+
+        // 2. Genero un ID univoco (int)
+        // Cerco l'ID più alto esistente e aggiungo 1 (Auto-incremento manuale)
+        int newId = 1;
+        for (User u : users) {
+            if (u.getId() >= newId) {
+                newId = u.getId() + 1;
+            }
+        }
+
+        // 3. Creo il nuovo utente usando il TUO costruttore
+        User newUser = new User(newId, name, email, password);
+
+        // 4. Aggiungo alla lista e salvo su file
+        users.add(newUser);
+        DataManager.getInstance().saveUsers(users);
+
+        return true; // Registrazione OK
     }
 }

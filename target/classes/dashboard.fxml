@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.DashboardController">
+    
+    <left>
+        <VBox spacing="10" style="-fx-background-color: #0f172a;" prefWidth="200">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            
+            <Label text="Synergy" textFill="WHITE" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Separator/>
+            
+            <Button text="Dashboard" maxWidth="Infinity" style="-fx-background-color: #1e293b; -fx-text-fill: white;"/>
+            <Button text="Esci" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="20" style="-fx-background-color: #f8f9fa;">
+            <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
+            
+            <Label fx:id="welcomeLabel" text="I tuoi Progetti" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+            
+            <ListView fx:id="projectListView" VBox.vgrow="ALWAYS"/>
+            
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="+ Nuovo Progetto" onAction="#handleNewProject" style="-fx-background-color: #14b8a6; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </center>
+    
+</BorderPane>
