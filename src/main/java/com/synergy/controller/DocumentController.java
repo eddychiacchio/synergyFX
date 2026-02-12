@@ -2,20 +2,21 @@ package com.synergy.controller;
 
 import com.synergy.model.*;
 import com.synergy.util.DataManager;
-import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 public class DocumentController {
     
-    // Cartella dove salvare i file (Nella tua cartella Utente/synergy_uploads)
+    // Cartella dove salvare i file
     private static final String UPLOAD_DIR = System.getProperty("user.home") + File.separator + "synergy_uploads";
 
-    public void uploadFile(int projectId, Part filePart) throws IOException {
+    // --- MODIFICA: Accetta 'File' invece di 'Part' ---
+    public void uploadFile(int projectId, File sourceFile) throws IOException {
         DataManager dm = DataManager.getInstance();
         
-        // 1. Trova il progetto (Logica manuale come in ProjectController)
+        // 1. Trova il progetto
         Project p = null;
         for(Project proj : dm.getProjects()) {
             if(proj.getId() == projectId) { p = proj; break; }
@@ -26,19 +27,19 @@ public class DocumentController {
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) uploadDir.mkdir();
 
-            // 3. Prepara il nome file univoco
-            String originalName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+            // 3. Prepara i nomi
+            String originalName = sourceFile.getName();
             String extension = "";
             int i = originalName.lastIndexOf('.');
             if (i > 0) extension = originalName.substring(i+1).toUpperCase();
             
-            // Nome salvato su disco: TIMESTAMP + NomeOriginale (per evitare sovrascritture)
             String savedFilename = System.currentTimeMillis() + "_" + originalName;
+            File destFile = new File(UPLOAD_DIR + File.separator + savedFilename);
             
-            // 4. Salva il file fisicamente
-            filePart.write(UPLOAD_DIR + File.separator + savedFilename);
+            // 4. Copia il file (Metodo Desktop)
+            Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-            // 5. Crea l'oggetto nel DB
+            // 5. Salva nel DB
             int newId = (int)(System.currentTimeMillis() & 0xfffffff);
             ProjectDocument doc = new ProjectDocument(newId, originalName, savedFilename, extension);
             
@@ -53,7 +54,6 @@ public class DocumentController {
         for(Project proj : dm.getProjects()) if(proj.getId() == projectId) p = proj;
 
         if (p != null) {
-            // Trova e rimuovi
             ProjectDocument toRemove = null;
             for(ProjectDocument d : p.getDocuments()) {
                 if(d.getId() == docId) {
@@ -63,19 +63,12 @@ public class DocumentController {
             }
             
             if(toRemove != null) {
-                // Cancella file fisico
                 File f = new File(UPLOAD_DIR + File.separator + toRemove.getFilename());
                 if(f.exists()) f.delete();
                 
-                // Rimuovi da lista e salva
                 p.getDocuments().remove(toRemove);
                 dm.saveData();
             }
         }
-    }
-    
-    // Helper per il download
-    public String getUploadPath() {
-        return UPLOAD_DIR;
     }
 }

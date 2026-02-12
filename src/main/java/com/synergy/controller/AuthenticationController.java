@@ -45,7 +45,7 @@ public class AuthenticationController {
 
         // 4. Aggiungo alla lista e salvo su file
         users.add(newUser);
-        DataManager.getInstance().saveUsers(users);
+        DataManager.getInstance().saveData();
 
         return true; // Registrazione OK
     }
