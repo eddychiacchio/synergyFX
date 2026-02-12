@@ -1,23 +1,22 @@
 package com.synergy.controller.fx;
 
 import com.synergy.model.Project;
+import com.synergy.model.ProjectMembership;
 import com.synergy.model.User;
 import com.synergy.util.DataManager;
 import com.synergy.util.SessionManager;
 import javafx.fxml.FXML;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.util.Date;
 import java.util.List;
 
 public class ProjectFormController {
 
     @FXML private TextField nameField;
     @FXML private TextArea descField;
-    @FXML private DatePicker deadlinePicker;
+    // Rimosso DatePicker
 
     @FXML
     private void handleSave() {
@@ -29,27 +28,27 @@ public class ProjectFormController {
             return;
         }
 
-        // 1. Recupera l'utente corrente (sarà il proprietario)
         User currentUser = SessionManager.getInstance().getCurrentUser();
-
-        // 2. Genera un ID univoco per il progetto
+        // Genera ID
         int newId = (int) (System.currentTimeMillis() & 0xfffffff);
 
-        // 3. Gestione Data (se selezionata, altrimenti data odierna + 30gg)
-        Date deadline = new Date();
-        if (deadlinePicker.getValue() != null) {
-            deadline = java.sql.Date.valueOf(deadlinePicker.getValue());
-        }
+        // --- CORREZIONE: Usiamo il costruttore ESATTO del tuo Project.java ---
+        Project newProject = new Project(newId, name, description);
+        
+        // --- PASSAGGIO FONDAMENTALE: Aggiungiamo l'utente al progetto ---
+        // Se non facciamo questo, il progetto esiste ma non è "tuo", quindi non lo vedrai
+        ProjectMembership membership = new ProjectMembership(newProject, currentUser);
+        // Nota: Se ProjectMembership ha un costruttore diverso (es. User, Project), inverti i parametri.
+        // Se ProjectMembership richiede ruolo, usa: new ProjectMembership(newProject, currentUser, "ADMIN");
+        
+        newProject.getMemberships().add(membership);
+        // ---------------------------------------------------------------
 
-        // 4. Crea il progetto
-        Project newProject = new Project(newId, name, description, new Date(), deadline, currentUser);
-
-        // 5. Salva nel DataManager
+        // Salva
         List<Project> projects = DataManager.getInstance().getProjects();
         projects.add(newProject);
         DataManager.getInstance().saveData();
 
-        // 6. Chiudi la finestra
         closeWindow();
     }
 
