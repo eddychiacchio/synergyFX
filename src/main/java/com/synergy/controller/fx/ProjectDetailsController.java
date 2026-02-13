@@ -3,6 +3,7 @@ package com.synergy.controller.fx;
 import com.synergy.App;
 import com.synergy.model.*;
 import com.synergy.controller.DocumentController;
+import com.synergy.util.DataManager;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -31,15 +32,13 @@ public class ProjectDetailsController {
     private Project currentProject;
     private DocumentController documentController = new DocumentController();
 
-    /**
-     * Questo metodo viene chiamato dalla Dashboard per passare il progetto cliccato.
-     */
     public void setProject(Project project) {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
-        documentColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         refreshKanban();
-        refreshDocument();
+        
+        docNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        refreshDocuments();
     }
 
     private void refreshKanban() {
@@ -127,7 +126,7 @@ public class ProjectDetailsController {
             try {
                 // ATTENZIONE: Verifica che il metodo nel tuo DocumentController si chiami esattamente così.
                 // Nella versione Web probabilmente prendeva un oggetto Part, ora deve prendere un File.
-                documentController.uploadDocument(selectedFile, currentProject);
+                documentController.uploadFile(currentProject.getId(), selectedFile);
                 
                 // Salvataggio tramite DataManager (in modo che la modifica persista)
                 DataManager.getInstance().saveData();
