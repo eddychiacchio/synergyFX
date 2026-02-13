@@ -8,9 +8,9 @@ import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+//import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
+//import javafx.scene.layout.HBox;
 import javafx.geometry.Insets;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
@@ -19,6 +19,18 @@ import javafx.stage.FileChooser;
 import java.awt.Desktop;
 import javafx.scene.input.MouseButton;
 import javafx.scene.control.ComboBox;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+//import javafx.scene.layout.Region;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import com.synergy.controller.ProjectController;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 
 import java.io.File;
 
@@ -35,8 +47,69 @@ public class ProjectDetailsController {
     @FXML private VBox doneColumn;
 
     private Project currentProject;
+    private ProjectController projectController = new ProjectController();
     private DocumentController documentController = new DocumentController();
 
+    @FXML
+    public void initialize() {
+        // --- AGGIUNTA FONDAMENTALE PER IL DRAG&DROP ---
+        // Diamo un'altezza minima per poter sganciare le card anche se la colonna è vuota!
+        todoColumn.setMinHeight(600);
+        doingColumn.setMinHeight(600);
+        doneColumn.setMinHeight(600);
+        
+        // Configuriamo le tre colonne per accettare il Drag & Drop
+        setupDropTarget(todoColumn, ActivityStatus.DA_FARE, "#f1f5f9");
+        setupDropTarget(doingColumn, ActivityStatus.IN_CORSO, "#fff7ed");
+        setupDropTarget(doneColumn, ActivityStatus.COMPLETATO, "#f0fdf4");
+    }
+
+    // Metodo helper per configurare il rilascio su una colonna
+    private void setupDropTarget(VBox column, ActivityStatus targetStatus, String originalColor) {
+        // 1. Quando il mouse "passa sopra" la colonna con un oggetto trascinato
+        column.setOnDragOver(event -> {
+            if (event.getGestureSource() != column && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        // 2. Quando l'oggetto entra nella colonna, la scurisci leggermente (Feedback visivo)
+        column.setOnDragEntered(event -> {
+            if (event.getGestureSource() != column && event.getDragboard().hasString()) {
+                column.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
+            }
+            event.consume();
+        });
+
+        // 3. Quando l'oggetto esce senza essere stato rilasciato, ripristini il colore
+        column.setOnDragExited(event -> {
+            column.setStyle("-fx-background-color: " + originalColor + "; -fx-background-radius: 8;");
+            event.consume();
+        });
+
+        // 4. Quando LASCIO il tasto del mouse sulla colonna (Il Drop!)
+        column.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            
+            if (db.hasString()) {
+                // Leggo l'ID della card che ho trascinato
+                int activityId = Integer.parseInt(db.getString());
+                
+                // Aggiorno il Database! (Utilizza il tuo metodo già pronto in ProjectController)
+                projectController.updateActivityStatus(currentProject.getId(), activityId, targetStatus.name());
+                
+                // Ricarico la lavagna per far apparire la card nella nuova colonna
+                refreshKanban();
+                success = true;
+            }
+            
+            event.setDropCompleted(success);
+            event.consume();
+        });
+    }
+    
     public void setProject(Project project) {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
@@ -101,36 +174,65 @@ public class ProjectDetailsController {
             }
         }
     }
-
-    // Metodo helper grafico: Crea il rettangolino colorato per l'attività
+    
+ // Metodo helper grafico: Crea il rettangolino colorato per l'attività
     private VBox createActivityCard(Activity a) {
         VBox card = new VBox(5);
         card.setPadding(new Insets(10));
-        // Stile CSS inline per fare il bordo arrotondato e l'ombra
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);");
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1); -fx-cursor: hand;");
         
-        // Titolo
         Label title = new Label(a.getTitle());
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        title.setWrapText(true);
         
-        // Etichetta Priorità colorata
         Label priority = new Label(a.getPriority().toString());
-        String color = "green"; // Default BASSA
+        String color = "green"; 
         if (a.getPriority() == PriorityLevel.MEDIA) color = "orange";
         if (a.getPriority() == PriorityLevel.ALTA) color = "red";
         
         priority.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 10px; -fx-font-weight: bold;");
 
-        // Aggiungo elementi alla card
         card.getChildren().addAll(priority, title);
         
-        // Se è un GRUPPO, mostro quante sotto-task ha
         if (a instanceof TaskGroup) {
             TaskGroup g = (TaskGroup) a;
             Label subCount = new Label("Sotto-attività: " + g.getChildren().size());
             subCount.setStyle("-fx-text-fill: gray; -fx-font-size: 10px;");
             card.getChildren().add(subCount);
         }
+
+        // --- INIZIO CODICE NUOVO: ABILITARE IL DRAG ---
+        card.setOnDragDetected(event -> {
+            // Inizia un'operazione di spostamento
+            Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
+            
+            // Mettiamo l'ID della card "negli appunti" della Dragboard come Stringa
+            ClipboardContent content = new ClipboardContent();
+            content.putString(String.valueOf(a.getId()));
+            db.setContent(content);
+            
+            event.consume();
+        });
+        
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem deleteItem = new MenuItem("Elimina Attività");
+        
+        // Cosa succede se clicco su "Elimina"
+        deleteItem.setOnAction(e -> {
+            // Usa il metodo già esistente nel tuo ProjectController
+            projectController.deleteActivity(currentProject.getId(), a.getId());
+            // Salva e ricarica la grafica
+            DataManager.getInstance().saveData();
+            refreshKanban();
+        });
+        
+        contextMenu.getItems().add(deleteItem);
+
+        // Associa il menu al click destro sulla card
+        card.setOnContextMenuRequested(event -> {
+            contextMenu.show(card, event.getScreenX(), event.getScreenY());
+        });
+        // --- FINE CODICE NUOVO ---
 
         return card;
     }
@@ -206,5 +308,33 @@ public class ProjectDetailsController {
     @FXML
     private void handleSortChange() {
         refreshKanban(); // Ricarica la lavagna con il nuovo ordinamento
+    }
+    
+    @FXML
+    private void handleNewActivity() {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
+            Parent root = loader.load();
+
+            // Passiamo il progetto attuale alla nuova finestra
+            ActivityFormController controller = loader.getController();
+            controller.setProject(currentProject);
+
+            Stage stage = new Stage();
+            stage.setTitle("Crea Nuova Attività");
+            stage.setScene(new Scene(root));
+            
+            // Blocca la finestra sotto finché questa non viene chiusa
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectNameLabel.getScene().getWindow());
+            
+            stage.showAndWait(); // <-- Il codice si ferma qui finché non chiudi la modale
+
+            // Appena la modale viene chiusa, ricarichiamo la lavagna per far apparire il nuovo task!
+            refreshKanban(); 
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

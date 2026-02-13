@@ -21,7 +21,12 @@
                     <VBox spacing="10" style="-fx-background-color: #f8f9fa;">
                         <padding><Insets top="15" right="20" bottom="20" left="20"/></padding>
                         
-                        <HBox alignment="CENTER_RIGHT" spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Button text="+ Aggiungi Attività" onAction="#handleNewActivity" 
+                                    style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15 8 15;"/>
+                            
+                            <Region HBox.hgrow="ALWAYS" />
+                            
                             <Label text="Ordina per:" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
                             <ComboBox fx:id="sortComboBox" onAction="#handleSortChange" prefWidth="150"/>
                         </HBox>
