@@ -14,11 +14,16 @@ import java.io.IOException;
 public class App extends Application {
 
     private static Scene scene;
-
+    
     @Override
     public void start(Stage stage) throws IOException {
         // Carica la prima schermata: Login
         scene = new Scene(loadFXML("login"), 800, 600);
+        
+        // --- LA RIGA MAGICA CHE MANCAVA! ---
+        // Dice a JavaFX di applicare il tuo CSS a tutta l'applicazione
+        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+        
         stage.setScene(scene);
         stage.setTitle("Synergy Desktop");
         stage.show();

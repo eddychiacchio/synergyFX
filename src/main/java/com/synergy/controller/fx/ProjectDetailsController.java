@@ -179,60 +179,56 @@ public class ProjectDetailsController {
         }
     }
     
- // Metodo helper grafico: Crea il rettangolino colorato per l'attività
+ // Metodo helper grafico aggiornato con il CSS
     private VBox createActivityCard(Activity a) {
-        VBox card = new VBox(5);
-        card.setPadding(new Insets(10));
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1); -fx-cursor: hand;");
+        VBox card = new VBox(8); // 8 è lo spazio tra gli elementi interni
         
+        // Applichiamo la classe CSS creata nel file styles.css
+        card.getStyleClass().add("kanban-card");
+        
+        // Titolo
         Label title = new Label(a.getTitle());
-        title.setStyle("-fx-text-fill: #1e293b; -fx-font-weight: bold; -fx-font-size: 14px;");
+        title.getStyleClass().add("card-title");
         title.setWrapText(true);
         
+        // Etichetta Priorità (Applica la classe CSS in base al livello)
         Label priority = new Label(a.getPriority().toString());
-        String color = "green"; 
-        if (a.getPriority() == PriorityLevel.MEDIA) color = "orange";
-        if (a.getPriority() == PriorityLevel.ALTA) color = "red";
-        
-        priority.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 10px; -fx-font-weight: bold;");
+        if (a.getPriority() == PriorityLevel.BASSA) {
+            priority.getStyleClass().add("priority-bassa");
+        } else if (a.getPriority() == PriorityLevel.MEDIA) {
+            priority.getStyleClass().add("priority-media");
+        } else if (a.getPriority() == PriorityLevel.ALTA) {
+            priority.getStyleClass().add("priority-alta");
+        }
 
         card.getChildren().addAll(priority, title);
         
+        // Se è un Gruppo, mostriamo le sotto-attività in modo elegante
         if (a instanceof TaskGroup) {
             TaskGroup g = (TaskGroup) a;
-            Label subCount = new Label("Sotto-attività: " + g.getChildren().size());
-            subCount.setStyle("-fx-text-fill: gray; -fx-font-size: 10px;");
+            Label subCount = new Label("📎 " + g.getChildren().size() + " sotto-task");
+            subCount.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold;");
             card.getChildren().add(subCount);
         }
 
-        // --- INIZIO CODICE NUOVO: ABILITARE IL DRAG ---
+        // --- MANTENIAMO INTATTA LA LOGICA DRAG & DROP E CLICK DESTRO ---
         card.setOnDragDetected(event -> {
-            // Inizia un'operazione di spostamento
             Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
-            
-            // Mettiamo l'ID della card "negli appunti" della Dragboard come Stringa
             ClipboardContent content = new ClipboardContent();
             content.putString(String.valueOf(a.getId()));
             db.setContent(content);
-            
             event.consume();
         });
-        
+
         ContextMenu contextMenu = new ContextMenu();
         MenuItem deleteItem = new MenuItem("Elimina Attività");
-        
-        // Cosa succede se clicco su "Elimina"
         deleteItem.setOnAction(e -> {
-            // Usa il metodo già esistente nel tuo ProjectController
             projectController.deleteActivity(currentProject.getId(), a.getId());
-            // Salva e ricarica la grafica
             DataManager.getInstance().saveData();
             refreshKanban();
         });
-        
         contextMenu.getItems().add(deleteItem);
 
-        // Associa il menu al click destro sulla card
         card.setOnContextMenuRequested(event -> {
             contextMenu.show(card, event.getScreenX(), event.getScreenY());
         });
