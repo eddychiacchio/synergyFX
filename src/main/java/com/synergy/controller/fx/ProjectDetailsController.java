@@ -186,7 +186,7 @@ public class ProjectDetailsController {
         card.setStyle("-fx-background-color: white; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1); -fx-cursor: hand;");
         
         Label title = new Label(a.getTitle());
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        title.setStyle("-fx-text-fill: #1e293b; -fx-font-weight: bold; -fx-font-size: 14px;");
         title.setWrapText(true);
         
         Label priority = new Label(a.getPriority().toString());

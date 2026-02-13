@@ -2,6 +2,7 @@ package com.synergy.util;
 
 import com.synergy.model.Project;
 import com.synergy.model.User;
+import com.synergy.model.ProjectMembership;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +82,20 @@ public class DataManager {
             } catch (Exception e) {
                 System.err.println("Errore lettura progetti, resetto lista.");
                 projects = new ArrayList<>();
+            }
+        }
+        
+     // Ricollega i riferimenti (Risolve i cloni della serializzazione)
+        if (projects != null && users != null) {
+            for (Project p : projects) {
+                for (ProjectMembership pm : p.getMemberships()) {
+                    for (User globalUser : users) {
+                        if (pm.getUser().getId() == globalUser.getId()) {
+                            pm.setUser(globalUser); // Sostituisci il clone con l'utente reale!
+                            break;
+                        }
+                    }
+                }
             }
         }
     }

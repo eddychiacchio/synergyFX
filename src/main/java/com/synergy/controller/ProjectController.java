@@ -58,11 +58,21 @@ public class ProjectController {
             // Non sa se sta ricevendo un SingleTask o un TaskGroup, e non gli interessa.
             Activity newActivity = ActivityFactory.createActivity(title, priority, deadline, subTasks);
             
+            newActivity.setTitle(title);
+            
             // 3. Aggiungo al progetto
             p.getActivities().add(newActivity);
             
             // 4. Notifico gli Observer (Utenti) - Pattern Observer
-            p.notifyObservers("Nuova attività aggiunta: " + title);
+            //p.notifyObservers("Nuova attività aggiunta: " + title);
+            String msg = "Nuova attività aggiunta: " + title;
+            for (ProjectMembership pm : p.getMemberships()) {
+                for (User globalUser : dm.getUsers()) {
+                    if (globalUser.getId() == pm.getUser().getId()) {
+                        globalUser.update(msg); // Pattern Observer sul vero utente!
+                    }
+                }
+            }
             
             // 5. Salvo
             dm.saveData();
