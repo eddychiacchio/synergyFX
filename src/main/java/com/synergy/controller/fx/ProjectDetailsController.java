@@ -4,6 +4,7 @@ import com.synergy.App;
 import com.synergy.model.*;
 import com.synergy.controller.DocumentController;
 import com.synergy.util.DataManager;
+import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -17,7 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import java.awt.Desktop;
 import javafx.scene.input.MouseButton;
-import java.io.File;
+import javafx.scene.control.ComboBox;
 
 import java.io.File;
 
@@ -26,6 +27,7 @@ public class ProjectDetailsController {
     @FXML private Label projectNameLabel;
     @FXML private TableView<ProjectDocument> documentsTable;
     @FXML private TableColumn<ProjectDocument, String> docNameColumn;
+    @FXML private ComboBox<String> sortComboBox;
     
     // Le tre colonne della lavagna (collegate all'FXML)
     @FXML private VBox todoColumn;
@@ -38,6 +40,12 @@ public class ProjectDetailsController {
     public void setProject(Project project) {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
+        
+        if (sortComboBox.getItems().isEmpty()) {
+            sortComboBox.getItems().addAll("Nessuno", "Priorità", "Scadenza");
+            sortComboBox.getSelectionModel().selectFirst(); // Seleziona "Nessuno" di default
+        }
+        
         refreshKanban();
         
         docNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -54,15 +62,32 @@ public class ProjectDetailsController {
     }
 
     private void refreshKanban() {
-        // 1. Pulisce le colonne (per non duplicare le card se ricarichiamo)
+        // 1. Pulisce le colonne
         todoColumn.getChildren().clear();
         doingColumn.getChildren().clear();
         doneColumn.getChildren().clear();
 
-        // 2. Distribuisce le attività nelle colonne giuste
-        for (Activity a : currentProject.getActivities()) {
+        // 2. Recupero la lista delle attività
+        List<Activity> activities = currentProject.getActivities();
+
+        // 3. Controllo l'ordinamento selezionato e applico lo Strategy
+        String sortSelection = sortComboBox != null ? sortComboBox.getValue() : "Nessuno";
+        SortStrategy strategy = null;
+
+        if ("Priorità".equals(sortSelection)) {
+            strategy = new SortByPriority();
+        } else if ("Scadenza".equals(sortSelection)) {
+            strategy = new SortByDeadline();
+        }
+
+        if (strategy != null) {
+            strategy.sort(activities); // Il tuo Pattern entra in azione qui!
+        }
+
+        // 4. Distribuisce le attività ordinate nelle colonne giuste
+        for (Activity a : activities) {
             VBox card = createActivityCard(a);
-            
+
             switch (a.getStatus()) {
                 case DA_FARE: 
                     todoColumn.getChildren().add(card); 
@@ -176,5 +201,10 @@ public class ProjectDetailsController {
             documentController.deleteDocument(currentProject.getId(), selectedDoc.getId());
             refreshDocuments(); // Ricarica la tabella per far sparire la riga
         }
+    }
+    
+    @FXML
+    private void handleSortChange() {
+        refreshKanban(); // Ricarica la lavagna con il nuovo ordinamento
     }
 }
