@@ -31,6 +31,10 @@ import javafx.scene.input.TransferMode;
 import com.synergy.controller.ProjectController;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert;
+import java.util.Optional;
+import javafx.scene.layout.Region;
 
 import java.io.File;
 
@@ -232,7 +236,6 @@ public class ProjectDetailsController {
         card.setOnContextMenuRequested(event -> {
             contextMenu.show(card, event.getScreenX(), event.getScreenY());
         });
-        // --- FINE CODICE NUOVO ---
 
         return card;
     }
@@ -335,6 +338,44 @@ public class ProjectDetailsController {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    
+ // Metodo per gestire l'invito di un nuovo membro
+    @FXML
+    private void handleInviteMember() {
+        // 1. Crea la finestra di dialogo preimpostata di JavaFX
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Invita Membro");
+        dialog.setHeaderText("Invita un nuovo collaboratore in " + currentProject.getName());
+        dialog.setContentText("Inserisci l'email dell'utente da invitare:");
+
+        // 2. Mostra la finestra e aspetta che l'utente inserisca il testo
+        Optional<String> result = dialog.showAndWait();
+        
+        // 3. Se l'utente ha premuto "OK" e ha inserito qualcosa...
+        if (result.isPresent()) {
+            String email = result.get().trim();
+            
+            if (!email.isEmpty()) {
+                // Richiama il tuo metodo nel backend
+                boolean success = projectController.inviteUserToProject(currentProject.getId(), email);
+                
+                // 4. Mostra un popup di Successo o Errore
+                if (success) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Successo");
+                    alert.setHeaderText(null);
+                    alert.setContentText("L'utente con email " + email + " è stato aggiunto al progetto!");
+                    alert.showAndWait();
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Errore");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Impossibile invitare l'utente.\nVerifica che l'email sia corretta e che l'utente non sia già nel progetto.");
+                    alert.showAndWait();
+                }
+            }
         }
     }
 }

@@ -10,6 +10,11 @@
             <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
             <Button text="← Indietro" onAction="#handleBack" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand;"/>
             <Label fx:id="projectNameLabel" text="Caricamento..." style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <Button text="👤 Invita Membro" onAction="#handleInviteMember" 
+                    style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15 8 15;"/>
         </HBox>
     </top>
 

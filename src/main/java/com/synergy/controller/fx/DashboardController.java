@@ -4,7 +4,7 @@ import com.synergy.App;
 import com.synergy.controller.ProjectController;
 import com.synergy.model.Project;
 import com.synergy.model.User;
-import com.synergy.util.SessionManager;
+import com.synergy.util.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -21,6 +21,7 @@ public class DashboardController {
 
     @FXML private Label welcomeLabel;
     @FXML private ListView<Project> projectListView;
+    @FXML private ListView<String> notificationsListView;
 
     private ProjectController projectController = new ProjectController();
 
@@ -33,13 +34,8 @@ public class DashboardController {
             welcomeLabel.setText("Benvenuto, " + currentUser.getName());
             
             refreshProjectList();
+            refreshNotifications();
             
-            /* 2. Carico i progetti dell'utente
-            List<Project> projects = projectController.getProjectsByUser(currentUser);
-            projectListView.getItems().addAll(projects);
-            */
-            
-            // 3. Gestisco il click sulla lista per aprire i dettagli
             projectListView.setOnMouseClicked(event -> {
                 Project selected = projectListView.getSelectionModel().getSelectedItem();
                 if (selected != null) {
@@ -108,6 +104,26 @@ public class DashboardController {
             
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    
+ // Ricarica la lista delle notifiche dell'utente
+    private void refreshNotifications() {
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            notificationsListView.getItems().clear();
+            notificationsListView.getItems().addAll(currentUser.getNotifications());
+        }
+    }
+
+    // Pulisce tutte le notifiche e salva
+    @FXML
+    private void handleClearNotifications() {
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.clearNotifications();
+            DataManager.getInstance().saveData(); // Salva nel file che abbiamo svuotato le notifiche
+            refreshNotifications();
         }
     }
 }

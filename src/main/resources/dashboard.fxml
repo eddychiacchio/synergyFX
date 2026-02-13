@@ -8,10 +8,8 @@
     <left>
         <VBox spacing="10" style="-fx-background-color: #0f172a;" prefWidth="200">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-            
             <Label text="Synergy" textFill="WHITE" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
             <Separator/>
-            
             <Button text="Dashboard" maxWidth="Infinity" style="-fx-background-color: #1e293b; -fx-text-fill: white;"/>
             <Button text="Esci" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8;"/>
         </VBox>
@@ -20,15 +18,24 @@
     <center>
         <VBox spacing="20" style="-fx-background-color: #f8f9fa;">
             <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
-            
             <Label fx:id="welcomeLabel" text="I tuoi Progetti" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
-            
             <ListView fx:id="projectListView" VBox.vgrow="ALWAYS"/>
-            
             <HBox spacing="10" alignment="CENTER_RIGHT">
                 <Button text="+ Nuovo Progetto" onAction="#handleNewProject" style="-fx-background-color: #14b8a6; -fx-text-fill: white; -fx-font-weight: bold;"/>
             </HBox>
         </VBox>
     </center>
+    
+    <right>
+        <VBox spacing="10" prefWidth="250" style="-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 0 1;">
+            <padding><Insets top="30" right="20" bottom="30" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT">
+                <Label text="🔔 Notifiche" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Pulisci" onAction="#handleClearNotifications" style="-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-cursor: hand;"/>
+            </HBox>
+            <ListView fx:id="notificationsListView" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;"/>
+        </VBox>
+    </right>
     
 </BorderPane>
