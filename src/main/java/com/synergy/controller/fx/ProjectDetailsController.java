@@ -15,6 +15,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
+import java.awt.Desktop;
+import javafx.scene.input.MouseButton;
+import java.io.File;
 
 import java.io.File;
 
@@ -39,6 +42,15 @@ public class ProjectDetailsController {
         
         docNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         refreshDocuments();
+        
+        documentsTable.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                ProjectDocument selectedDoc = documentsTable.getSelectionModel().getSelectedItem();
+                if (selectedDoc != null) {
+                    openDocument(selectedDoc);
+                }
+            }
+        });
     }
 
     private void refreshKanban() {
@@ -138,6 +150,31 @@ public class ProjectDetailsController {
                 e.printStackTrace();
                 // Qui potresti mostrare un Alert di errore all'utente
             }
+        }
+    }
+    
+ // Metodo per aprire il file con il programma predefinito di Windows/Mac
+    private void openDocument(ProjectDocument doc) {
+        try {
+            File fileToOpen = documentController.getDocumentFile(doc);
+            if (fileToOpen.exists()) {
+                Desktop.getDesktop().open(fileToOpen);
+            } else {
+                System.out.println("Errore: Il file non è più presente nella cartella.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Metodo per il bottone rosso "Elimina"
+    @FXML
+    private void handleDeleteDocument() {
+        ProjectDocument selectedDoc = documentsTable.getSelectionModel().getSelectedItem();
+        if (selectedDoc != null) {
+            // documentController ha già il metodo deleteDocument scritto da te, usiamolo!
+            documentController.deleteDocument(currentProject.getId(), selectedDoc.getId());
+            refreshDocuments(); // Ricarica la tabella per far sparire la riga
         }
     }
 }

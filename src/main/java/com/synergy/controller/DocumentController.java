@@ -71,4 +71,9 @@ public class DocumentController {
             }
         }
     }
+    
+ // Metodo aggiunto per recuperare il file fisico dal disco
+    public File getDocumentFile(ProjectDocument doc) {
+        return new File(UPLOAD_DIR + File.separator + doc.getFilename());
+    }
 }

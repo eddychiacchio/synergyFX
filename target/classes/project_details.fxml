@@ -52,9 +52,11 @@
                     <VBox spacing="15" style="-fx-background-color: #f8f9fa;">
                         <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                         
-                        <HBox alignment="CENTER_LEFT">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
                             <Button text="+ Carica Nuovo Documento" onAction="#handleUploadDocument" 
                                     style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 8 15 8 15; -fx-font-weight: bold; -fx-background-radius: 5;"/>
+                            <Button text="- Elimina Selezionato" onAction="#handleDeleteDocument" 
+                                    style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 8 15 8 15; -fx-font-weight: bold; -fx-background-radius: 5;"/>
                         </HBox>
                         
                         <TableView fx:id="documentsTable" VBox.vgrow="ALWAYS">
