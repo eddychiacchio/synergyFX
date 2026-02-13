@@ -14,33 +14,60 @@
     </top>
 
     <center>
-        <HBox spacing="20" style="-fx-background-color: #f8f9fa;">
-            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-            
-            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8;">
-                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                <Label text="DA FARE" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
-                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                    <VBox fx:id="todoColumn" spacing="10"/>
-                </ScrollPane>
-            </VBox>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                
+                <Tab text="Kanban Board">
+                    <HBox spacing="20" style="-fx-background-color: #f8f9fa;">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        
+                        <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8;">
+                            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                            <Label text="DA FARE" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
+                            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                                <VBox fx:id="todoColumn" spacing="10"/>
+                            </ScrollPane>
+                        </VBox>
 
-            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #fff7ed; -fx-background-radius: 8;">
-                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                <Label text="IN CORSO" style="-fx-font-weight: bold; -fx-text-fill: #c2410c;"/>
-                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                    <VBox fx:id="doingColumn" spacing="10"/>
-                </ScrollPane>
-            </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #fff7ed; -fx-background-radius: 8;">
+                            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                            <Label text="IN CORSO" style="-fx-font-weight: bold; -fx-text-fill: #c2410c;"/>
+                            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                                <VBox fx:id="doingColumn" spacing="10"/>
+                            </ScrollPane>
+                        </VBox>
 
-            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f0fdf4; -fx-background-radius: 8;">
-                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                <Label text="COMPLETATO" style="-fx-font-weight: bold; -fx-text-fill: #15803d;"/>
-                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                    <VBox fx:id="doneColumn" spacing="10"/>
-                </ScrollPane>
-            </VBox>
-            
-        </HBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f0fdf4; -fx-background-radius: 8;">
+                            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                            <Label text="COMPLETATO" style="-fx-font-weight: bold; -fx-text-fill: #15803d;"/>
+                            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+                                <VBox fx:id="doneColumn" spacing="10"/>
+                            </ScrollPane>
+                        </VBox>
+                        
+                    </HBox>
+                </Tab>
+
+                <Tab text="Documenti">
+                    <VBox spacing="15" style="-fx-background-color: #f8f9fa;">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        
+                        <HBox alignment="CENTER_LEFT">
+                            <Button text="+ Carica Nuovo Documento" onAction="#handleUploadDocument" 
+                                    style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 8 15 8 15; -fx-font-weight: bold; -fx-background-radius: 5;"/>
+                        </HBox>
+                        
+                        <TableView fx:id="documentsTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="docNameColumn" text="Nome File" prefWidth="500"/>
+                            </columns>
+                        </TableView>
+                        
+                    </VBox>
+                </Tab>
+
+            </tabs>
+        </TabPane>
     </center>
+    
 </BorderPane>

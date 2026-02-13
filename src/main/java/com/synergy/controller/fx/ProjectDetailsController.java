@@ -2,16 +2,26 @@ package com.synergy.controller.fx;
 
 import com.synergy.App;
 import com.synergy.model.*;
+import com.synergy.controller.DocumentController;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.geometry.Insets;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 public class ProjectDetailsController {
 
     @FXML private Label projectNameLabel;
+    @FXML private TableView<ProjectDocument> documentsTable;
+    @FXML private TableColumn<ProjectDocument, String> docNameColumn;
     
     // Le tre colonne della lavagna (collegate all'FXML)
     @FXML private VBox todoColumn;
@@ -19,6 +29,7 @@ public class ProjectDetailsController {
     @FXML private VBox doneColumn;
 
     private Project currentProject;
+    private DocumentController documentController = new DocumentController();
 
     /**
      * Questo metodo viene chiamato dalla Dashboard per passare il progetto cliccato.
@@ -26,7 +37,9 @@ public class ProjectDetailsController {
     public void setProject(Project project) {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
+        documentColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         refreshKanban();
+        refreshDocument();
     }
 
     private void refreshKanban() {
@@ -90,5 +103,42 @@ public class ProjectDetailsController {
     private void handleBack() throws java.io.IOException {
         // Torna alla Dashboard
         App.setRoot("dashboard");
+    }
+    
+    private void refreshDocuments() {
+        if (currentProject != null) {
+            documentsTable.getItems().clear();
+            documentsTable.getItems().addAll(currentProject.getDocuments());
+        }
+    }
+
+    @FXML
+    private void handleUploadDocument() {
+        // Apre la finestra di dialogo del sistema operativo per scegliere un file
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleziona il documento da caricare");
+        
+        // Puoi aggiungere filtri per le estensioni se vuoi (es. solo PDF, DOCX)
+        // fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+
+        File selectedFile = fileChooser.showOpenDialog(documentsTable.getScene().getWindow());
+        
+        if (selectedFile != null) {
+            try {
+                // ATTENZIONE: Verifica che il metodo nel tuo DocumentController si chiami esattamente così.
+                // Nella versione Web probabilmente prendeva un oggetto Part, ora deve prendere un File.
+                documentController.uploadDocument(selectedFile, currentProject);
+                
+                // Salvataggio tramite DataManager (in modo che la modifica persista)
+                DataManager.getInstance().saveData();
+                
+                // Aggiorna la vista
+                refreshDocuments();
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Qui potresti mostrare un Alert di errore all'utente
+            }
+        }
     }
 }

@@ -29,22 +29,18 @@ public class ProjectFormController {
         }
 
         User currentUser = SessionManager.getInstance().getCurrentUser();
-        // Genera ID
+
         int newId = (int) (System.currentTimeMillis() & 0xfffffff);
 
-        // --- CORREZIONE: Usiamo il costruttore ESATTO del tuo Project.java ---
         Project newProject = new Project(newId, name, description);
         
-        // --- PASSAGGIO FONDAMENTALE: Aggiungiamo l'utente al progetto ---
-        // Se non facciamo questo, il progetto esiste ma non è "tuo", quindi non lo vedrai
-        ProjectMembership membership = new ProjectMembership(newProject, currentUser);
-        // Nota: Se ProjectMembership ha un costruttore diverso (es. User, Project), inverti i parametri.
-        // Se ProjectMembership richiede ruolo, usa: new ProjectMembership(newProject, currentUser, "ADMIN");
+        ProjectMembership membership = new ProjectMembership();
+        membership.setProject(newProject);
+        membership.setUser(currentUser);
+        membership.setIsAdmin(true);
         
         newProject.getMemberships().add(membership);
-        // ---------------------------------------------------------------
 
-        // Salva
         List<Project> projects = DataManager.getInstance().getProjects();
         projects.add(newProject);
         DataManager.getInstance().saveData();

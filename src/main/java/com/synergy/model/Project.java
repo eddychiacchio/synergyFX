@@ -66,4 +66,9 @@ public class Project implements Serializable, ISubject {
         if (documents == null) documents = new ArrayList<>();
         return documents;
     }
+    
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

@@ -26,7 +26,7 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        // 1. Recupero l'utente loggato dalla Sessione
+        
         User currentUser = SessionManager.getInstance().getCurrentUser();
         
         if (currentUser != null) {
@@ -34,9 +34,10 @@ public class DashboardController {
             
             refreshProjectList();
             
-            // 2. Carico i progetti dell'utente
+            /* 2. Carico i progetti dell'utente
             List<Project> projects = projectController.getProjectsByUser(currentUser);
             projectListView.getItems().addAll(projects);
+            */
             
             // 3. Gestisco il click sulla lista per aprire i dettagli
             projectListView.setOnMouseClicked(event -> {

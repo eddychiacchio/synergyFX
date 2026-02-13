@@ -12,3 +12,4 @@ build/
 # I file database (non caricarli mai su internet per privacy!)
 *.ser
 synergy_uploads/
+/target/
