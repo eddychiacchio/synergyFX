@@ -64,15 +64,7 @@ public class ProjectController {
             p.getActivities().add(newActivity);
             
             // 4. Notifico gli Observer (Utenti) - Pattern Observer
-            //p.notifyObservers("Nuova attività aggiunta: " + title);
-            String msg = "Nuova attività aggiunta: " + title;
-            for (ProjectMembership pm : p.getMemberships()) {
-                for (User globalUser : dm.getUsers()) {
-                    if (globalUser.getId() == pm.getUser().getId()) {
-                        globalUser.update(msg); // Pattern Observer sul vero utente!
-                    }
-                }
-            }
+            p.notifyObservers("Nuova attività aggiunta: " + title);
             
             // 5. Salvo
             dm.saveData();

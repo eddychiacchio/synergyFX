@@ -16,7 +16,6 @@ public class ProjectFormController {
 
     @FXML private TextField nameField;
     @FXML private TextArea descField;
-    // Rimosso DatePicker
 
     @FXML
     private void handleSave() {

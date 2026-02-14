@@ -14,14 +14,13 @@ import java.io.IOException;
 public class App extends Application {
 
     private static Scene scene;
-    
+
     @Override
     public void start(Stage stage) throws IOException {
         // Carica la prima schermata: Login
         scene = new Scene(loadFXML("login"), 800, 600);
         
-        // --- LA RIGA MAGICA CHE MANCAVA! ---
-        // Dice a JavaFX di applicare il tuo CSS a tutta l'applicazione
+        // ---> QUESTA È LA RIGA FONDAMENTALE CHE MANCAVA! <---
         scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         
         stage.setScene(scene);
@@ -31,7 +30,6 @@ public class App extends Application {
 
     /**
      * Metodo statico per cambiare schermata da qualsiasi controller.
-     * Esempio: App.setRoot("dashboard");
      */
     public static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
