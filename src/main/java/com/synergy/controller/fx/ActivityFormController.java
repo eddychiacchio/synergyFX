@@ -1,7 +1,9 @@
 package com.synergy.controller.fx;
 
 import com.synergy.controller.ProjectController;
+import com.synergy.model.Activity;
 import com.synergy.model.Project;
+import com.synergy.model.TaskGroup;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -16,16 +18,41 @@ public class ActivityFormController {
 
     private Project currentProject;
     private ProjectController projectController = new ProjectController();
+    
+    // NUOVA VARIABILE: Tiene traccia se stiamo modificando un'attività esistente
+    private Activity activityToEdit = null; 
 
     @FXML
     public void initialize() {
-        // Riempiamo il menu a tendina con le priorità
         priorityBox.getItems().addAll("BASSA", "MEDIA", "ALTA");
-        priorityBox.getSelectionModel().select("MEDIA"); // Valore di default
+        priorityBox.getSelectionModel().select("MEDIA");
     }
 
     public void setProject(Project project) {
         this.currentProject = project;
+    }
+
+    // --- NUOVO METODO: Pre-compila il form se stiamo modificando ---
+    public void setActivityToEdit(Activity a) {
+        this.activityToEdit = a;
+        
+        // Riempi i campi base
+        titleField.setText(a.getTitle());
+        priorityBox.getSelectionModel().select(a.getPriority().toString());
+        
+        if (a.getDeadline() != null) {
+            deadlinePicker.setValue(a.getDeadline());
+        }
+
+        // Se è un gruppo, estrai le sotto-task e mettile nell'area di testo (una per riga)
+        if (a instanceof TaskGroup) {
+            TaskGroup group = (TaskGroup) a;
+            StringBuilder sb = new StringBuilder();
+            for (Activity child : group.getChildren()) {
+                sb.append(child.getTitle()).append("\n");
+            }
+            subtasksArea.setText(sb.toString().trim());
+        }
     }
 
     @FXML
@@ -40,15 +67,20 @@ public class ActivityFormController {
         LocalDate date = deadlinePicker.getValue();
         String dateStr = (date != null) ? date.toString() : "";
 
-        // Suddivide le sotto-task per riga
         String subtasksText = subtasksArea.getText();
         String[] subTasks = null;
         if (subtasksText != null && !subtasksText.trim().isEmpty()) {
-            subTasks = subtasksText.split("\\n"); // Divide usando "A capo"
+            subTasks = subtasksText.split("\\n");
         }
 
-        // Passa tutto al controller principale (esattamente come faceva la Servlet!)
-        projectController.addActivityToProject(currentProject.getId(), title, priority, dateStr, subTasks);
+        // BIVIO: Creazione o Modifica?
+        if (activityToEdit == null) {
+            // Creiamo una Nuova Attività
+            projectController.addActivityToProject(currentProject.getId(), title, priority, dateStr, subTasks);
+        } else {
+            // Modifichiamo quella esistente sfruttando il metodo che avevi già scritto!
+            projectController.updateActivityContent(currentProject.getId(), activityToEdit.getId(), title, priority, dateStr, subTasks);
+        }
 
         closeWindow();
     }

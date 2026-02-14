@@ -273,4 +273,18 @@ public class ProjectController {
         }
         return result;
     }
+    
+ // --- Metodo per eliminare un intero progetto ---
+    public boolean deleteProject(int projectId) {
+        DataManager dm = DataManager.getInstance();
+        
+        // Cerca il progetto e rimuovilo dalla lista globale
+        boolean removed = dm.getProjects().removeIf(p -> p.getId() == projectId);
+        
+        if (removed) {
+            dm.saveData(); // Salva istantaneamente su file
+        }
+        
+        return removed;
+    }
 }

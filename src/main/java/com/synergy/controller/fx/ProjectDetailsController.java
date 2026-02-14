@@ -3,42 +3,41 @@ package com.synergy.controller.fx;
 import com.synergy.App;
 import com.synergy.model.*;
 import com.synergy.controller.DocumentController;
-import com.synergy.util.DataManager;
-import java.util.List;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-//import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.VBox;
-//import javafx.scene.layout.HBox;
-import javafx.geometry.Insets;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.FileChooser;
-import java.awt.Desktop;
-import javafx.scene.input.MouseButton;
-import javafx.scene.control.ComboBox;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-//import javafx.scene.layout.Region;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import com.synergy.controller.ProjectController;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.Alert;
-import java.util.Optional;
-import javafx.scene.layout.Region;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
+import com.synergy.util.DataManager;
+import com.synergy.util.SessionManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.awt.Desktop;
+
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class ProjectDetailsController {
 
@@ -47,7 +46,11 @@ public class ProjectDetailsController {
     @FXML private TableColumn<ProjectDocument, String> docNameColumn;
     @FXML private ComboBox<String> sortComboBox;
     
-    // Le tre colonne della lavagna (collegate all'FXML)
+    // Bottoni Sensibili (Da nascondere se l'utente non è Admin)
+    @FXML private Button inviteMemberBtn;
+    @FXML private Button deleteDocBtn;
+    
+    // Le tre colonne della lavagna
     @FXML private VBox todoColumn;
     @FXML private VBox doingColumn;
     @FXML private VBox doneColumn;
@@ -55,24 +58,22 @@ public class ProjectDetailsController {
     private Project currentProject;
     private ProjectController projectController = new ProjectController();
     private DocumentController documentController = new DocumentController();
+    
+    // Variabile globale per sapere se l'utente corrente comanda su questo progetto
+    private boolean isAdmin = false;
 
     @FXML
     public void initialize() {
-        // --- AGGIUNTA FONDAMENTALE PER IL DRAG&DROP ---
-        // Diamo un'altezza minima per poter sganciare le card anche se la colonna è vuota!
         todoColumn.setMinHeight(600);
         doingColumn.setMinHeight(600);
         doneColumn.setMinHeight(600);
         
-        // Configuriamo le tre colonne per accettare il Drag & Drop
         setupDropTarget(todoColumn, ActivityStatus.DA_FARE, "#f1f5f9");
         setupDropTarget(doingColumn, ActivityStatus.IN_CORSO, "#fff7ed");
         setupDropTarget(doneColumn, ActivityStatus.COMPLETATO, "#f0fdf4");
     }
 
-    // Metodo helper per configurare il rilascio su una colonna
     private void setupDropTarget(VBox column, ActivityStatus targetStatus, String originalColor) {
-        // 1. Quando il mouse "passa sopra" la colonna con un oggetto trascinato
         column.setOnDragOver(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -80,7 +81,6 @@ public class ProjectDetailsController {
             event.consume();
         });
 
-        // 2. Quando l'oggetto entra nella colonna, la scurisci leggermente (Feedback visivo)
         column.setOnDragEntered(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
                 column.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
@@ -88,25 +88,18 @@ public class ProjectDetailsController {
             event.consume();
         });
 
-        // 3. Quando l'oggetto esce senza essere stato rilasciato, ripristini il colore
         column.setOnDragExited(event -> {
             column.setStyle("-fx-background-color: " + originalColor + "; -fx-background-radius: 8;");
             event.consume();
         });
 
-        // 4. Quando LASCIO il tasto del mouse sulla colonna (Il Drop!)
         column.setOnDragDropped(event -> {
             Dragboard db = event.getDragboard();
             boolean success = false;
             
             if (db.hasString()) {
-                // Leggo l'ID della card che ho trascinato
                 int activityId = Integer.parseInt(db.getString());
-                
-                // Aggiorno il Database! (Utilizza il tuo metodo già pronto in ProjectController)
                 projectController.updateActivityStatus(currentProject.getId(), activityId, targetStatus.name());
-                
-                // Ricarico la lavagna per far apparire la card nella nuova colonna
                 refreshKanban();
                 success = true;
             }
@@ -120,9 +113,26 @@ public class ProjectDetailsController {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
         
+        // --- 1. CONTROLLO PERMESSI ---
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        this.isAdmin = false;
+        if (currentUser != null) {
+            for (ProjectMembership pm : project.getMemberships()) {
+                if (pm.getUser() != null && pm.getUser().getId() == currentUser.getId()) {
+                    this.isAdmin = pm.getIsAdmin();
+                    break;
+                }
+            }
+        }
+        
+        // --- 2. APPLICA I PERMESSI ALLA UI ---
+        // Se non è admin, scompare il bottone Invita e il bottone Elimina Documento!
+        if (inviteMemberBtn != null) inviteMemberBtn.setVisible(isAdmin);
+        if (deleteDocBtn != null) deleteDocBtn.setVisible(isAdmin);
+        
         if (sortComboBox.getItems().isEmpty()) {
             sortComboBox.getItems().addAll("Nessuno", "Priorità", "Scadenza");
-            sortComboBox.getSelectionModel().selectFirst(); // Seleziona "Nessuno" di default
+            sortComboBox.getSelectionModel().selectFirst();
         }
         
         refreshKanban();
@@ -141,15 +151,11 @@ public class ProjectDetailsController {
     }
 
     private void refreshKanban() {
-        // 1. Pulisce le colonne
         todoColumn.getChildren().clear();
         doingColumn.getChildren().clear();
         doneColumn.getChildren().clear();
 
-        // 2. Recupero la lista delle attività
         List<Activity> activities = currentProject.getActivities();
-
-        // 3. Controllo l'ordinamento selezionato e applico lo Strategy
         String sortSelection = sortComboBox != null ? sortComboBox.getValue() : "Nessuno";
         SortStrategy strategy = null;
 
@@ -160,60 +166,44 @@ public class ProjectDetailsController {
         }
 
         if (strategy != null) {
-            strategy.sort(activities); // Il tuo Pattern entra in azione qui!
+            strategy.sort(activities);
         }
 
-        // 4. Distribuisce le attività ordinate nelle colonne giuste
         for (Activity a : activities) {
             VBox card = createActivityCard(a);
-
             switch (a.getStatus()) {
-                case DA_FARE: 
-                    todoColumn.getChildren().add(card); 
-                    break;
-                case IN_CORSO: 
-                    doingColumn.getChildren().add(card); 
-                    break;
-                case COMPLETATO: 
-                    doneColumn.getChildren().add(card); 
-                    break;
+                case DA_FARE: todoColumn.getChildren().add(card); break;
+                case IN_CORSO: doingColumn.getChildren().add(card); break;
+                case COMPLETATO: doneColumn.getChildren().add(card); break;
             }
         }
     }
     
- // Metodo helper grafico: Stile moderno 100% Java (Senza CSS esterno)
     private VBox createActivityCard(Activity a) {
         VBox card = new VBox(8);
         card.setPadding(new Insets(15));
-        
-        // Stile base della card: sfondo bianco, angoli arrotondati, cursore a manina
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-cursor: hand;");
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-border-color: #e2e8f0; -fx-border-radius: 8;");
 
-        // --- CREAZIONE OMBRE IN JAVA PURO ---
-        DropShadow normalShadow = new DropShadow(10, Color.rgb(0, 0, 0, 0.08));
+        DropShadow normalShadow = new DropShadow(5, Color.rgb(0, 0, 0, 0.05));
         normalShadow.setOffsetY(2);
-        
-        DropShadow hoverShadow = new DropShadow(15, Color.rgb(0, 0, 0, 0.15));
+        DropShadow hoverShadow = new DropShadow(10, Color.rgb(0, 0, 0, 0.10));
         hoverShadow.setOffsetY(4);
         
-        card.setEffect(normalShadow); // Ombra di default
+        card.setEffect(normalShadow);
 
-        // Effetto "Hover" al passaggio del mouse
         card.setOnMouseEntered(e -> {
             card.setEffect(hoverShadow);
-            card.setTranslateY(-2); // Solleva la card
+            card.setTranslateY(-2);
         });
         card.setOnMouseExited(e -> {
             card.setEffect(normalShadow);
-            card.setTranslateY(0); // Riabbassa la card
+            card.setTranslateY(0);
         });
 
-        // --- TITOLO ---
         Label title = new Label(a.getTitle());
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e293b;");
         title.setWrapText(true);
         
-        // --- ETICHETTA PRIORITÀ A "PILLOLA" ---
         Label priority = new Label(a.getPriority().toString());
         String basePriorityStyle = "-fx-padding: 3 8 3 8; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 10px; ";
         
@@ -227,7 +217,6 @@ public class ProjectDetailsController {
 
         card.getChildren().addAll(priority, title);
         
-        // --- SOTTO-ATTIVITÀ ---
         if (a instanceof TaskGroup) {
             TaskGroup g = (TaskGroup) a;
             Label subCount = new Label("📎 " + g.getChildren().size() + " sotto-task");
@@ -235,7 +224,6 @@ public class ProjectDetailsController {
             card.getChildren().add(subCount);
         }
 
-        // --- DRAG & DROP E CLICK DESTRO (INTATTI) ---
         card.setOnDragDetected(event -> {
             Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
@@ -245,13 +233,23 @@ public class ProjectDetailsController {
         });
 
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem deleteItem = new MenuItem("Elimina Attività");
-        deleteItem.setOnAction(e -> {
-            projectController.deleteActivity(currentProject.getId(), a.getId());
-            DataManager.getInstance().saveData();
-            refreshKanban();
-        });
-        contextMenu.getItems().add(deleteItem);
+        
+        // Tutti possono modificare un'attività
+        MenuItem editItem = new MenuItem("✏️ Modifica Attività");
+        editItem.setOnAction(e -> openEditActivityModal(a));
+        contextMenu.getItems().add(editItem);
+
+        // Solo il Project Manager può usare il tasto destro per ELIMINARE!
+        if (isAdmin) {
+            MenuItem deleteItem = new MenuItem("🗑️ Elimina Attività");
+            deleteItem.setStyle("-fx-text-fill: red;");
+            deleteItem.setOnAction(e -> {
+                projectController.deleteActivity(currentProject.getId(), a.getId());
+                DataManager.getInstance().saveData();
+                refreshKanban();
+            });
+            contextMenu.getItems().add(deleteItem);
+        }
 
         card.setOnContextMenuRequested(event -> {
             contextMenu.show(card, event.getScreenX(), event.getScreenY());
@@ -261,8 +259,7 @@ public class ProjectDetailsController {
     }
 
     @FXML
-    private void handleBack() throws java.io.IOException {
-        // Torna alla Dashboard
+    private void handleBack() throws IOException {
         App.setRoot("dashboard");
     }
     
@@ -275,35 +272,21 @@ public class ProjectDetailsController {
    
     @FXML
     private void handleUploadDocument() {
-        // Apre la finestra di dialogo del sistema operativo per scegliere un file
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Seleziona il documento da caricare");
-        
-        // Puoi aggiungere filtri per le estensioni se vuoi (es. solo PDF, DOCX)
-        // fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-
         File selectedFile = fileChooser.showOpenDialog(documentsTable.getScene().getWindow());
         
         if (selectedFile != null) {
             try {
-                // ATTENZIONE: Verifica che il metodo nel tuo DocumentController si chiami esattamente così.
-                // Nella versione Web probabilmente prendeva un oggetto Part, ora deve prendere un File.
                 documentController.uploadFile(currentProject.getId(), selectedFile);
-                
-                // Salvataggio tramite DataManager (in modo che la modifica persista)
                 DataManager.getInstance().saveData();
-                
-                // Aggiorna la vista
                 refreshDocuments();
-                
             } catch (Exception e) {
                 e.printStackTrace();
-                // Qui potresti mostrare un Alert di errore all'utente
             }
         }
     }
     
- // Metodo per aprire il file con il programma predefinito di Windows/Mac
     private void openDocument(ProjectDocument doc) {
         try {
             File fileToOpen = documentController.getDocumentFile(doc);
@@ -317,20 +300,43 @@ public class ProjectDetailsController {
         }
     }
 
-    // Metodo per il bottone rosso "Elimina"
     @FXML
     private void handleDeleteDocument() {
+        if (!isAdmin) return; // Doppia sicurezza backend
+        
         ProjectDocument selectedDoc = documentsTable.getSelectionModel().getSelectedItem();
         if (selectedDoc != null) {
-            // documentController ha già il metodo deleteDocument scritto da te, usiamolo!
             documentController.deleteDocument(currentProject.getId(), selectedDoc.getId());
-            refreshDocuments(); // Ricarica la tabella per far sparire la riga
+            refreshDocuments();
         }
     }
     
     @FXML
     private void handleSortChange() {
-        refreshKanban(); // Ricarica la lavagna con il nuovo ordinamento
+        refreshKanban();
+    }
+    
+    private void openEditActivityModal(Activity a) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
+            Parent root = loader.load();
+            ActivityFormController controller = loader.getController();
+            
+            controller.setProject(currentProject);
+            // La magia: passiamo la card al form per farlo pre-compilare!
+            controller.setActivityToEdit(a); 
+
+            Stage stage = new Stage();
+            stage.setTitle("Modifica: " + a.getTitle());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectNameLabel.getScene().getWindow());
+            stage.showAndWait();
+            
+            refreshKanban(); 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML
@@ -338,50 +344,36 @@ public class ProjectDetailsController {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
             Parent root = loader.load();
-
-            // Passiamo il progetto attuale alla nuova finestra
             ActivityFormController controller = loader.getController();
             controller.setProject(currentProject);
 
             Stage stage = new Stage();
             stage.setTitle("Crea Nuova Attività");
             stage.setScene(new Scene(root));
-            
-            // Blocca la finestra sotto finché questa non viene chiusa
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(projectNameLabel.getScene().getWindow());
-            
-            stage.showAndWait(); // <-- Il codice si ferma qui finché non chiudi la modale
-
-            // Appena la modale viene chiusa, ricarichiamo la lavagna per far apparire il nuovo task!
+            stage.showAndWait();
             refreshKanban(); 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
- // Metodo per gestire l'invito di un nuovo membro
     @FXML
     private void handleInviteMember() {
-        // 1. Crea la finestra di dialogo preimpostata di JavaFX
+        if (!isAdmin) return; // Doppia sicurezza
+        
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Invita Membro");
         dialog.setHeaderText("Invita un nuovo collaboratore in " + currentProject.getName());
         dialog.setContentText("Inserisci l'email dell'utente da invitare:");
 
-        // 2. Mostra la finestra e aspetta che l'utente inserisca il testo
         Optional<String> result = dialog.showAndWait();
         
-        // 3. Se l'utente ha premuto "OK" e ha inserito qualcosa...
         if (result.isPresent()) {
             String email = result.get().trim();
-            
             if (!email.isEmpty()) {
-                // Richiama il tuo metodo nel backend
                 boolean success = projectController.inviteUserToProject(currentProject.getId(), email);
-                
-                // 4. Mostra un popup di Successo o Errore
                 if (success) {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Successo");
