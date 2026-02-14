@@ -86,13 +86,17 @@ public class DataManager {
         }
         
      // Ricollega i riferimenti (Risolve i cloni della serializzazione)
+     // Ricollega i riferimenti (Risolve i cloni della serializzazione)
         if (projects != null && users != null) {
             for (Project p : projects) {
                 for (ProjectMembership pm : p.getMemberships()) {
-                    for (User globalUser : users) {
-                        if (pm.getUser().getId() == globalUser.getId()) {
-                            pm.setUser(globalUser); // Sostituisci il clone con l'utente reale!
-                            break;
+                    // --- AGGIUNTO CONTROLLO DI SICUREZZA ANTI-CRASH ---
+                    if (pm.getUser() != null) {
+                        for (User globalUser : users) {
+                            if (pm.getUser().getId() == globalUser.getId()) {
+                                pm.setUser(globalUser); // Sostituisci il clone con l'utente reale!
+                                break;
+                            }
                         }
                     }
                 }

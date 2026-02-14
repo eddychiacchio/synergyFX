@@ -20,9 +20,6 @@ public class App extends Application {
         // Carica la prima schermata: Login
         scene = new Scene(loadFXML("login"), 800, 600);
         
-        // ---> QUESTA È LA RIGA FONDAMENTALE CHE MANCAVA! <---
-        scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
-        
         stage.setScene(scene);
         stage.setTitle("Synergy Desktop");
         stage.show();

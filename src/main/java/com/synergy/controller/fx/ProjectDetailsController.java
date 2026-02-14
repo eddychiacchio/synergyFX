@@ -35,6 +35,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Alert;
 import java.util.Optional;
 import javafx.scene.layout.Region;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
 
 import java.io.File;
 
@@ -179,31 +181,53 @@ public class ProjectDetailsController {
         }
     }
     
- // Metodo helper grafico aggiornato con il CSS
+ // Metodo helper grafico: Stile moderno 100% Java (Senza CSS esterno)
     private VBox createActivityCard(Activity a) {
-        VBox card = new VBox(8); // 8 è lo spazio tra gli elementi interni
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(15));
         
-        // Applichiamo la classe CSS creata nel file styles.css
-        card.getStyleClass().add("kanban-card");
+        // Stile base della card: sfondo bianco, angoli arrotondati, cursore a manina
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        // --- CREAZIONE OMBRE IN JAVA PURO ---
+        DropShadow normalShadow = new DropShadow(10, Color.rgb(0, 0, 0, 0.08));
+        normalShadow.setOffsetY(2);
         
-        // Titolo
+        DropShadow hoverShadow = new DropShadow(15, Color.rgb(0, 0, 0, 0.15));
+        hoverShadow.setOffsetY(4);
+        
+        card.setEffect(normalShadow); // Ombra di default
+
+        // Effetto "Hover" al passaggio del mouse
+        card.setOnMouseEntered(e -> {
+            card.setEffect(hoverShadow);
+            card.setTranslateY(-2); // Solleva la card
+        });
+        card.setOnMouseExited(e -> {
+            card.setEffect(normalShadow);
+            card.setTranslateY(0); // Riabbassa la card
+        });
+
+        // --- TITOLO ---
         Label title = new Label(a.getTitle());
-        title.getStyleClass().add("card-title");
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e293b;");
         title.setWrapText(true);
         
-        // Etichetta Priorità (Applica la classe CSS in base al livello)
+        // --- ETICHETTA PRIORITÀ A "PILLOLA" ---
         Label priority = new Label(a.getPriority().toString());
+        String basePriorityStyle = "-fx-padding: 3 8 3 8; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 10px; ";
+        
         if (a.getPriority() == PriorityLevel.BASSA) {
-            priority.getStyleClass().add("priority-bassa");
+            priority.setStyle(basePriorityStyle + "-fx-text-fill: #10b981; -fx-background-color: #d1fae5;");
         } else if (a.getPriority() == PriorityLevel.MEDIA) {
-            priority.getStyleClass().add("priority-media");
+            priority.setStyle(basePriorityStyle + "-fx-text-fill: #f59e0b; -fx-background-color: #fef3c7;");
         } else if (a.getPriority() == PriorityLevel.ALTA) {
-            priority.getStyleClass().add("priority-alta");
+            priority.setStyle(basePriorityStyle + "-fx-text-fill: #ef4444; -fx-background-color: #fee2e2;");
         }
 
         card.getChildren().addAll(priority, title);
         
-        // Se è un Gruppo, mostriamo le sotto-attività in modo elegante
+        // --- SOTTO-ATTIVITÀ ---
         if (a instanceof TaskGroup) {
             TaskGroup g = (TaskGroup) a;
             Label subCount = new Label("📎 " + g.getChildren().size() + " sotto-task");
@@ -211,7 +235,7 @@ public class ProjectDetailsController {
             card.getChildren().add(subCount);
         }
 
-        // --- MANTENIAMO INTATTA LA LOGICA DRAG & DROP E CLICK DESTRO ---
+        // --- DRAG & DROP E CLICK DESTRO (INTATTI) ---
         card.setOnDragDetected(event -> {
             Dragboard db = card.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
@@ -248,7 +272,7 @@ public class ProjectDetailsController {
             documentsTable.getItems().addAll(currentProject.getDocuments());
         }
     }
-
+   
     @FXML
     private void handleUploadDocument() {
         // Apre la finestra di dialogo del sistema operativo per scegliere un file
