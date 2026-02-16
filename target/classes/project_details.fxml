@@ -1,92 +1,172 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.ProjectDetailsController">
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.ProjectDetailsController">
     
-    <top>
-        <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
-            <padding><Insets top="15" right="20" bottom="15" left="20"/></padding>
-            <Button text="← Indietro" onAction="#handleBack" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand;"/>
-            <Label fx:id="projectNameLabel" text="Caricamento..." style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-            
-            <Region HBox.hgrow="ALWAYS" />
-            
-            <Button text="👤 Invita Membro" onAction="#handleInviteMember" 
-                    style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15 8 15;"/>
-        </HBox>
-    </top>
-
-    <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE">
-            <tabs>
+    <BorderPane style="-fx-background-color: #f8f9fa;">
+        
+        <left>
+            <VBox prefWidth="260" spacing="10" style="-fx-background-color: #0f172a;">
+                <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 24;">
+                    <Circle fill="transparent" radius="10" stroke="#22d3ee" strokeWidth="2" />
+                    <Label style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;" text="Synergy" />
+                </HBox>
                 
-                <Tab text="Kanban Board">
-                    <VBox spacing="10" style="-fx-background-color: #f8f9fa;">
-                        <padding><Insets top="15" right="20" bottom="20" left="20"/></padding>
-                        
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Button text="+ Aggiungi Attività" onAction="#handleNewActivity" 
-                                    style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-padding: 8 15 8 15;"/>
-                            
-                            <Region HBox.hgrow="ALWAYS" />
-                            
-                            <Label text="Ordina per:" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
-                            <ComboBox fx:id="sortComboBox" onAction="#handleSortChange" prefWidth="150"/>
-                        </HBox>
+                <VBox spacing="8" style="-fx-padding: 0 16 0 16;" VBox.vgrow="ALWAYS">
+                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" onAction="#handleDashboard" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-cursor: hand;" text="Dashboard" />
+                    
+                    <HBox alignment="CENTER_LEFT" onMouseClicked="#toggleNotifications" spacing="10" style="-fx-padding: 10 16; -fx-background-radius: 4; -fx-cursor: hand;">
+                        <Label style="-fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px;" text="Notifiche" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="notificationBadge" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6; -fx-background-radius: 10;" text="0" visible="false" />
+                    </HBox>
+                    <VBox fx:id="recentProjectsList" spacing="4" style="-fx-padding: 0 8;" />
+                </VBox>
+                
+                <VBox style="-fx-border-color: #1e293b; -fx-border-width: 1 0 0 0; -fx-padding: 16;">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <StackPane>
+                            <Circle fill="#0891b2" radius="16" />
+                            <Label fx:id="userInitialsLabel" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;" text="UT" />
+                        </StackPane>
+                        <VBox>
+                            <Label fx:id="usernameLabel" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;" text="Utente" />
+                            <Label style="-fx-text-fill: #10b981; -fx-font-size: 12px;" text="Online" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 16px;" text="Exit" />
+                    </HBox>
+                </VBox>
+            </VBox>
+        </left>
 
-                        <HBox spacing="20" VBox.vgrow="ALWAYS">
-                            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f1f5f9; -fx-background-radius: 8;">
-                                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                <Label text="DA FARE" style="-fx-font-weight: bold; -fx-text-fill: #475569;"/>
-                                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                                    <VBox fx:id="todoColumn" spacing="10"/>
-                                </ScrollPane>
+        <center>
+            <VBox onMouseClicked="#hideNotificationsIfClickOutside" spacing="20">
+                <padding><Insets bottom="30" left="40" right="40" top="30" /></padding>
+                
+                <VBox spacing="12">
+                    <Button onAction="#handleBack" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 0;" text="← Torna Indietro" />
+                    
+                    <HBox alignment="CENTER_LEFT" spacing="20">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <VBox>
+                                <Label fx:id="projectNameLabel" style="-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #1e293b;" text="Caricamento..." />
+                                <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;" text="Project Manager" />
                             </VBox>
-
-                            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #fff7ed; -fx-background-radius: 8;">
-                                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                <Label text="IN CORSO" style="-fx-font-weight: bold; -fx-text-fill: #c2410c;"/>
-                                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                                    <VBox fx:id="doingColumn" spacing="10"/>
-                                </ScrollPane>
-                            </VBox>
-
-                            <VBox HBox.hgrow="ALWAYS" spacing="10" style="-fx-background-color: #f0fdf4; -fx-background-radius: 8;">
-                                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                                <Label text="COMPLETATO" style="-fx-font-weight: bold; -fx-text-fill: #15803d;"/>
-                                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-                                    <VBox fx:id="doneColumn" spacing="10"/>
-                                </ScrollPane>
-                            </VBox>
                         </HBox>
-                        
-                    </VBox>
-                </Tab>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="inviteMemberBtn" onAction="#handleInviteMember" style="-fx-background-color: white; -fx-text-fill: #1e293b; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-cursor: hand; -fx-padding: 10 20;" text="👤 Invita" />
+                        <Button onAction="#handleNewActivity" style="-fx-background-color: #0891b2; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 20;" text="+ Nuova Attività" />
+                    </HBox>
+                    <Label fx:id="projectDescriptionLabel" style="-fx-font-size: 14px; -fx-text-fill: #64748b; -fx-padding: 0 0 0 36;" text="Descrizione" />
+                </VBox>
 
-                <Tab text="Documenti">
-                    <VBox spacing="15" style="-fx-background-color: #f8f9fa;">
-                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                        
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Button text="+ Carica Nuovo Documento" onAction="#handleUploadDocument" 
-                                    style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 8 15 8 15; -fx-font-weight: bold; -fx-background-radius: 5;"/>
-                            <Button text="- Elimina Selezionato" onAction="#handleDeleteDocument" 
-                                    style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 8 15 8 15; -fx-font-weight: bold; -fx-background-radius: 5;"/>
-                        </HBox>
-                        
-                        <TableView fx:id="documentsTable" VBox.vgrow="ALWAYS">
-                            <columns>
-                                <TableColumn fx:id="docNameColumn" text="Nome File" prefWidth="500"/>
-                            </columns>
-                        </TableView>
-                        
-                    </VBox>
-                </Tab>
+                <TabPane style="-fx-background-color: transparent; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                    <tabs>
+                        <Tab style="-fx-background-color: transparent;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #0891b2;" text="Attività" />
+                                </HBox>
+                            </graphic>
+                            <VBox spacing="20" style="-fx-background-color: #f8f9fa; -fx-padding: 24 0 0 0;">
+                                <HBox alignment="CENTER_LEFT" spacing="15">
+                                    <Label style="-fx-font-weight: 600; -fx-text-fill: #64748b; -fx-font-size: 13px;" text="Ordina per:" />
+                                    <ComboBox fx:id="sortComboBox" onAction="#handleSortChange" prefWidth="140" style="-fx-background-color: white; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 13px;" />
+                                </HBox>
 
-            </tabs>
-        </TabPane>
-    </center>
-    
-</BorderPane>
+                                <HBox alignment="TOP_LEFT" spacing="16" VBox.vgrow="ALWAYS">
+                                    <VBox spacing="12" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+                                        <padding><Insets bottom="16" left="12" right="12" top="16" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="8">
+                                            <Circle fill="#94a3b8" radius="4" />
+                                            <Label style="-fx-font-weight: 900; -fx-text-fill: #475569; -fx-font-size: 12px; -fx-letter-spacing: 0.5px;" text="DA FARE" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="todoCountLabel" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 2 8;" text="0" />
+                                        </HBox>
+                                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                                            <VBox fx:id="todoColumn" spacing="12" style="-fx-background-color: transparent;" />
+                                        </ScrollPane>
+                                    </VBox>
+
+                                    <VBox spacing="12" style="-fx-background-color: #fffbeb; -fx-background-radius: 12; -fx-border-color: #fef3c7; -fx-border-radius: 12; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+                                        <padding><Insets bottom="16" left="12" right="12" top="16" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="8">
+                                            <Circle fill="#f59e0b" radius="4" />
+                                            <Label style="-fx-font-weight: 900; -fx-text-fill: #92400e; -fx-font-size: 12px; -fx-letter-spacing: 0.5px;" text="IN CORSO" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="doingCountLabel" style="-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 2 8;" text="0" />
+                                        </HBox>
+                                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                                            <VBox fx:id="doingColumn" spacing="12" style="-fx-background-color: transparent;" />
+                                        </ScrollPane>
+                                    </VBox>
+
+                                    <VBox spacing="12" style="-fx-background-color: #f0fdf4; -fx-background-radius: 12; -fx-border-color: #bbf7d0; -fx-border-radius: 12; -fx-border-width: 1;" HBox.hgrow="ALWAYS">
+                                        <padding><Insets bottom="16" left="12" right="12" top="16" /></padding>
+                                        <HBox alignment="CENTER_LEFT" spacing="8">
+                                            <Circle fill="#10b981" radius="4" />
+                                            <Label style="-fx-font-weight: 900; -fx-text-fill: #14532d; -fx-font-size: 12px; -fx-letter-spacing: 0.5px;" text="COMPLETATO" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="doneCountLabel" style="-fx-background-color: #bbf7d0; -fx-text-fill: #14532d; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 10; -fx-padding: 2 8;" text="0" />
+                                        </HBox>
+                                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+                                            <VBox fx:id="doneColumn" spacing="12" style="-fx-background-color: transparent;" />
+                                        </ScrollPane>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </Tab>
+
+                        <Tab style="-fx-background-color: transparent;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="8">
+                                    <Label style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #64748b;" text="Documenti" />
+                                </HBox>
+                            </graphic>
+                            <VBox spacing="20" style="-fx-background-color: #f8f9fa; -fx-padding: 24 0 0 0;">
+                                <HBox alignment="CENTER_LEFT" spacing="15">
+                                    <Button onAction="#handleUploadDocument" style="-fx-background-color: #0891b2; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 10 20; -fx-font-weight: bold; -fx-background-radius: 8;" text="+ Carica Nuovo" />
+                                    <Button fx:id="deleteDocBtn" onAction="#handleDeleteDocument" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-cursor: hand; -fx-padding: 10 20; -fx-font-weight: bold; -fx-background-radius: 8;" text="🗑 Elimina Selezionato" />
+                                </HBox>
+                                <VBox style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-padding: 0;" VBox.vgrow="ALWAYS">
+                                    <TableView fx:id="documentsTable" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-table-cell-border-color: #f1f5f9;" VBox.vgrow="ALWAYS">
+                                        <columns>
+                                            <TableColumn fx:id="docNameColumn" prefWidth="600" style="-fx-font-size: 14px; -fx-alignment: CENTER_LEFT;" text="Nome File" />
+                                        </columns>
+                                    </TableView>
+                                </VBox>
+                            </VBox>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+            </VBox>
+        </center>
+    </BorderPane>
+
+    <VBox fx:id="notificationPanel" maxHeight="350" maxWidth="320" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 4, 4);" visible="false" StackPane.alignment="TOP_LEFT">
+        <StackPane.margin><Insets left="270" top="130" /></StackPane.margin>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 16; -fx-background-color: #f8fafc; -fx-background-radius: 8 8 0 0; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
+            <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;" text="Ultime Notifiche" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#handleClearNotifications" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 6; -fx-background-radius: 4; -fx-cursor: hand;" text="Pulisci" />
+        </HBox>
+        <ListView fx:id="notificationsListView" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-control-inner-background: white; -fx-font-size: 12px; -fx-text-fill: #475569; -fx-padding: 5;" VBox.vgrow="ALWAYS" />
+    </VBox>
+</StackPane>

@@ -4,8 +4,8 @@ import com.synergy.App;
 import com.synergy.model.*;
 import com.synergy.controller.DocumentController;
 import com.synergy.controller.ProjectController;
-import com.synergy.util.DataManager;
 import com.synergy.util.SessionManager;
+import com.synergy.util.DataManager; // <-- IMPORT AGGIUNTO!
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +23,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView; // <-- IMPORT AGGIUNTO!
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -41,16 +42,22 @@ import javafx.stage.Stage;
 
 public class ProjectDetailsController {
 
+    @FXML private Label usernameLabel;
+    @FXML private Label userInitialsLabel;
+    @FXML private Label projectDescriptionLabel;
+    @FXML private Label todoCountLabel;
+    @FXML private Label doingCountLabel;
+    @FXML private Label doneCountLabel;
+    @FXML private VBox recentProjectsList;
+
     @FXML private Label projectNameLabel;
     @FXML private TableView<ProjectDocument> documentsTable;
     @FXML private TableColumn<ProjectDocument, String> docNameColumn;
     @FXML private ComboBox<String> sortComboBox;
     
-    // Bottoni Sensibili (Da nascondere se l'utente non è Admin)
     @FXML private Button inviteMemberBtn;
     @FXML private Button deleteDocBtn;
     
-    // Le tre colonne della lavagna
     @FXML private VBox todoColumn;
     @FXML private VBox doingColumn;
     @FXML private VBox doneColumn;
@@ -58,8 +65,6 @@ public class ProjectDetailsController {
     private Project currentProject;
     private ProjectController projectController = new ProjectController();
     private DocumentController documentController = new DocumentController();
-    
-    // Variabile globale per sapere se l'utente corrente comanda su questo progetto
     private boolean isAdmin = false;
 
     @FXML
@@ -68,8 +73,8 @@ public class ProjectDetailsController {
         doingColumn.setMinHeight(600);
         doneColumn.setMinHeight(600);
         
-        setupDropTarget(todoColumn, ActivityStatus.DA_FARE, "#f1f5f9");
-        setupDropTarget(doingColumn, ActivityStatus.IN_CORSO, "#fff7ed");
+        setupDropTarget(todoColumn, ActivityStatus.DA_FARE, "#f8fafc");
+        setupDropTarget(doingColumn, ActivityStatus.IN_CORSO, "#fffbeb");
         setupDropTarget(doneColumn, ActivityStatus.COMPLETATO, "#f0fdf4");
     }
 
@@ -83,27 +88,28 @@ public class ProjectDetailsController {
 
         column.setOnDragEntered(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
-                column.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
+                column.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 12;");
             }
             event.consume();
         });
 
         column.setOnDragExited(event -> {
-            column.setStyle("-fx-background-color: " + originalColor + "; -fx-background-radius: 8;");
+            column.setStyle("-fx-background-color: transparent;"); 
             event.consume();
         });
 
         column.setOnDragDropped(event -> {
             Dragboard db = event.getDragboard();
             boolean success = false;
-            
             if (db.hasString()) {
                 int activityId = Integer.parseInt(db.getString());
+                
                 projectController.updateActivityStatus(currentProject.getId(), activityId, targetStatus.name());
+                currentProject = projectController.getProjectById(currentProject.getId());
                 refreshKanban();
+                
                 success = true;
             }
-            
             event.setDropCompleted(success);
             event.consume();
         });
@@ -113,10 +119,20 @@ public class ProjectDetailsController {
         this.currentProject = project;
         projectNameLabel.setText(project.getName());
         
-        // --- 1. CONTROLLO PERMESSI ---
+        if (projectDescriptionLabel != null) {
+            projectDescriptionLabel.setText(project.getDescription() != null && !project.getDescription().isEmpty() 
+                    ? project.getDescription() : "Nessuna descrizione.");
+        }
+        
         User currentUser = SessionManager.getInstance().getCurrentUser();
         this.isAdmin = false;
         if (currentUser != null) {
+            if (usernameLabel != null) usernameLabel.setText(currentUser.getName());
+            if (userInitialsLabel != null) {
+                String initials = currentUser.getName().length() >= 2 ? currentUser.getName().substring(0, 2).toUpperCase() : "U";
+                userInitialsLabel.setText(initials);
+            }
+            
             for (ProjectMembership pm : project.getMemberships()) {
                 if (pm.getUser() != null && pm.getUser().getId() == currentUser.getId()) {
                     this.isAdmin = pm.getIsAdmin();
@@ -125,8 +141,6 @@ public class ProjectDetailsController {
             }
         }
         
-        // --- 2. APPLICA I PERMESSI ALLA UI ---
-        // Se non è admin, scompare il bottone Invita e il bottone Elimina Documento!
         if (inviteMemberBtn != null) inviteMemberBtn.setVisible(isAdmin);
         if (deleteDocBtn != null) deleteDocBtn.setVisible(isAdmin);
         
@@ -177,6 +191,10 @@ public class ProjectDetailsController {
                 case COMPLETATO: doneColumn.getChildren().add(card); break;
             }
         }
+        
+        if (todoCountLabel != null) todoCountLabel.setText(String.valueOf(todoColumn.getChildren().size()));
+        if (doingCountLabel != null) doingCountLabel.setText(String.valueOf(doingColumn.getChildren().size()));
+        if (doneCountLabel != null) doneCountLabel.setText(String.valueOf(doneColumn.getChildren().size()));
     }
     
     private VBox createActivityCard(Activity a) {
@@ -219,7 +237,7 @@ public class ProjectDetailsController {
         
         if (a instanceof TaskGroup) {
             TaskGroup g = (TaskGroup) a;
-            Label subCount = new Label("📎 " + g.getChildren().size() + " sotto-task");
+            Label subCount = new Label("📎 " + g.getChildren().size() + " sub-task");
             subCount.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold;");
             card.getChildren().add(subCount);
         }
@@ -234,18 +252,16 @@ public class ProjectDetailsController {
 
         ContextMenu contextMenu = new ContextMenu();
         
-        // Tutti possono modificare un'attività
         MenuItem editItem = new MenuItem("✏️ Modifica Attività");
         editItem.setOnAction(e -> openEditActivityModal(a));
         contextMenu.getItems().add(editItem);
 
-        // Solo il Project Manager può usare il tasto destro per ELIMINARE!
         if (isAdmin) {
             MenuItem deleteItem = new MenuItem("🗑️ Elimina Attività");
             deleteItem.setStyle("-fx-text-fill: red;");
             deleteItem.setOnAction(e -> {
                 projectController.deleteActivity(currentProject.getId(), a.getId());
-                DataManager.getInstance().saveData();
+                currentProject = projectController.getProjectById(currentProject.getId());
                 refreshKanban();
             });
             contextMenu.getItems().add(deleteItem);
@@ -258,9 +274,47 @@ public class ProjectDetailsController {
         return card;
     }
 
+    private void openEditActivityModal(Activity a) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
+            Parent root = loader.load();
+            ActivityFormController controller = loader.getController();
+            
+            controller.setProject(currentProject);
+            controller.setActivityToEdit(a); 
+
+            Stage stage = new Stage();
+            stage.setTitle("Modifica: " + a.getTitle());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectNameLabel.getScene().getWindow());
+            stage.showAndWait();
+            
+            currentProject = projectController.getProjectById(currentProject.getId());
+            refreshKanban(); 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleDashboard() throws IOException {
+        App.setRoot("dashboard");
+    }
+
+    @FXML
+    private void handleNotifications() {
+        System.out.println("Notifiche cliccate dalla Sidebar");
+    }
+
+    @FXML
+    private void handleChat() {
+        System.out.println("Chat cliccata dalla Sidebar");
+    }
+    
     @FXML
     private void handleBack() throws IOException {
-        App.setRoot("dashboard");
+        handleDashboard();
     }
     
     private void refreshDocuments() {
@@ -279,7 +333,7 @@ public class ProjectDetailsController {
         if (selectedFile != null) {
             try {
                 documentController.uploadFile(currentProject.getId(), selectedFile);
-                DataManager.getInstance().saveData();
+                currentProject = projectController.getProjectById(currentProject.getId());
                 refreshDocuments();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -293,7 +347,7 @@ public class ProjectDetailsController {
             if (fileToOpen.exists()) {
                 Desktop.getDesktop().open(fileToOpen);
             } else {
-                System.out.println("Errore: Il file non è più presente nella cartella.");
+                System.out.println("Errore: Il file non è più presente in " + fileToOpen.getAbsolutePath());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -302,11 +356,11 @@ public class ProjectDetailsController {
 
     @FXML
     private void handleDeleteDocument() {
-        if (!isAdmin) return; // Doppia sicurezza backend
-        
+        if (!isAdmin) return;
         ProjectDocument selectedDoc = documentsTable.getSelectionModel().getSelectedItem();
         if (selectedDoc != null) {
             documentController.deleteDocument(currentProject.getId(), selectedDoc.getId());
+            currentProject = projectController.getProjectById(currentProject.getId());
             refreshDocuments();
         }
     }
@@ -314,29 +368,6 @@ public class ProjectDetailsController {
     @FXML
     private void handleSortChange() {
         refreshKanban();
-    }
-    
-    private void openEditActivityModal(Activity a) {
-        try {
-            FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
-            Parent root = loader.load();
-            ActivityFormController controller = loader.getController();
-            
-            controller.setProject(currentProject);
-            // La magia: passiamo la card al form per farlo pre-compilare!
-            controller.setActivityToEdit(a); 
-
-            Stage stage = new Stage();
-            stage.setTitle("Modifica: " + a.getTitle());
-            stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(projectNameLabel.getScene().getWindow());
-            stage.showAndWait();
-            
-            refreshKanban(); 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
     
     @FXML
@@ -353,6 +384,8 @@ public class ProjectDetailsController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(projectNameLabel.getScene().getWindow());
             stage.showAndWait();
+            
+            currentProject = projectController.getProjectById(currentProject.getId());
             refreshKanban(); 
         } catch (Exception e) {
             e.printStackTrace();
@@ -361,15 +394,13 @@ public class ProjectDetailsController {
     
     @FXML
     private void handleInviteMember() {
-        if (!isAdmin) return; // Doppia sicurezza
-        
+        if (!isAdmin) return;
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Invita Membro");
         dialog.setHeaderText("Invita un nuovo collaboratore in " + currentProject.getName());
         dialog.setContentText("Inserisci l'email dell'utente da invitare:");
 
         Optional<String> result = dialog.showAndWait();
-        
         if (result.isPresent()) {
             String email = result.get().trim();
             if (!email.isEmpty()) {
@@ -378,16 +409,69 @@ public class ProjectDetailsController {
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Successo");
                     alert.setHeaderText(null);
-                    alert.setContentText("L'utente con email " + email + " è stato aggiunto al progetto!");
+                    alert.setContentText("L'utente è stato aggiunto al progetto!");
                     alert.showAndWait();
                 } else {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Errore");
                     alert.setHeaderText(null);
-                    alert.setContentText("Impossibile invitare l'utente.\nVerifica che l'email sia corretta e che l'utente non sia già nel progetto.");
+                    alert.setContentText("Impossibile invitare l'utente.");
                     alert.showAndWait();
                 }
             }
         }
+    }
+    
+    @FXML private VBox notificationPanel;
+    @FXML private ListView<String> notificationsListView;
+    @FXML private Label notificationBadge;
+
+    @FXML
+    private void toggleNotifications() {
+        if (notificationPanel != null) {
+            notificationPanel.setVisible(!notificationPanel.isVisible());
+            if (notificationPanel.isVisible()) refreshNotifications();
+        }
+    }
+
+    @FXML
+    private void hideNotificationsIfClickOutside() {
+        if (notificationPanel != null && notificationPanel.isVisible()) {
+            notificationPanel.setVisible(false);
+        }
+    }
+
+    @FXML
+    private void handleClearNotifications() {
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.clearNotifications();
+            DataManager.getInstance().saveData();
+            refreshNotifications();
+            if (notificationPanel != null) notificationPanel.setVisible(false);
+        }
+    }
+
+    private void refreshNotifications() {
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser != null && notificationsListView != null) {
+            List<String> notifs = currentUser.getNotifications();
+            notificationsListView.getItems().clear();
+            if (notifs != null && !notifs.isEmpty()) {
+                notificationsListView.getItems().addAll(notifs);
+                if (notificationBadge != null) {
+                    notificationBadge.setText(String.valueOf(notifs.size()));
+                    notificationBadge.setVisible(true);
+                }
+            } else {
+                if (notificationBadge != null) notificationBadge.setVisible(false);
+            }
+        }
+    }
+
+    @FXML
+    private void handleLogout() throws java.io.IOException {
+        SessionManager.getInstance().logout();
+        App.setRoot("login");
     }
 }

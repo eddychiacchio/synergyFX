@@ -1,92 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.shape.Circle?>
 
-<StackPane xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.DashboardController">
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.control.ScrollPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.DashboardController">
     
     <BorderPane style="-fx-background-color: #f8f9fa;">
         
+        <!-- SIDEBAR SINISTRA (invariata) -->
         <left>
-            <VBox spacing="10" style="-fx-background-color: #0f172a;" prefWidth="260">
+            <VBox prefWidth="260" spacing="10" style="-fx-background-color: #0f172a;">
                 <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 24;">
-                    <Circle fill="transparent" stroke="#22d3ee" strokeWidth="2" radius="10"/>
-                    <Label text="Synergy" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+                    <Circle fill="transparent" radius="10" stroke="#22d3ee" strokeWidth="2" />
+                    <Label style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;" text="Synergy" />
                 </HBox>
                 
                 <VBox spacing="8" style="-fx-padding: 0 16 0 16;" VBox.vgrow="ALWAYS">
-                    <Button text="Dashboard" alignment="CENTER_LEFT" maxWidth="Infinity" 
-                            style="-fx-background-color: #1e293b; -fx-text-fill: #22d3ee; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-border-color: #22d3ee; -fx-border-width: 0 0 0 4; -fx-cursor: hand;"/>
+                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" style="-fx-background-color: #1e293b; -fx-text-fill: #22d3ee; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-border-color: #22d3ee; -fx-border-width: 0 0 0 4; -fx-cursor: hand;" text="🏠 Dashboard" />
                     
-                    <HBox alignment="CENTER_LEFT" spacing="10" onMouseClicked="#toggleNotifications"
-                          style="-fx-padding: 10 16; -fx-background-radius: 4; -fx-cursor: hand;">
-                        <Label text="🔔 Notifiche" style="-fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="notificationBadge" text="0" 
-                               style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6; -fx-background-radius: 10;"/>
+                    <HBox alignment="CENTER_LEFT" onMouseClicked="#toggleNotifications" spacing="10" style="-fx-padding: 10 16; -fx-background-radius: 4; -fx-cursor: hand;">
+                        <Label style="-fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px;" text="🔔 Notifiche" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="notificationBadge" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6; -fx-background-radius: 10;" text="3" visible="true" />
                     </HBox>
                     
-                    <Label text="PROGETTI RECENTI" style="-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 24 0 8 16;"/>
+                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-cursor: hand;" text="💬 Chat" />
+                    
+                    <Label style="-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 20 16 8 16;" text="PROGETTI RECENTI" />
+                    
+                    <VBox fx:id="recentProjectsList" spacing="4" style="-fx-padding: 0 8;" />
                 </VBox>
                 
                 <VBox style="-fx-border-color: #1e293b; -fx-border-width: 1 0 0 0; -fx-padding: 16;">
                     <HBox alignment="CENTER_LEFT" spacing="12">
                         <StackPane>
-                            <Circle radius="16" fill="#0891b2"/>
-                            <Label text="UT" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                            <Circle fill="#0891b2" radius="16" />
+                            <Label fx:id="userInitialsLabel" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;" text="EP" />
                         </StackPane>
                         <VBox>
-                            <Label fx:id="welcomeLabel" text="Utente" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-                            <Label text="Online" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                            <Label fx:id="usernameLabel" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;" text="Eddy P." />
+                            <Label style="-fx-text-fill: #10b981; -fx-font-size: 12px;" text="Online" />
                         </VBox>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="Esci" onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand; -fx-font-size: 12px;"/>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: bold;" text="⎋" />
                     </HBox>
                 </VBox>
             </VBox>
         </left>
 
+        <!-- CONTENUTO PRINCIPALE - PARTE DESTRA AGGIORNATA -->
         <center>
-            <VBox spacing="30" onMouseClicked="#hideNotificationsIfClickOutside">
-                <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
-                
-                <HBox alignment="BOTTOM_LEFT">
-                    <VBox spacing="5">
-                        <Label text="Panoramica" style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
-                        <Label text="Bentornato. Ecco i tuoi progetti e le tue attività." style="-fx-font-size: 14px; -fx-text-fill: #64748b;"/>
+            <ScrollPane fitToWidth="true" style="-fx-background-color: #f8f9fa; -fx-background: #f8f9fa;">
+                <VBox onMouseClicked="#hideNotificationsIfClickOutside" spacing="32" style="-fx-background-color: #f8f9fa;">
+                    <padding><Insets bottom="40" left="40" right="40" top="40" /></padding>
+                    
+                    <!-- Header -->
+                    <HBox alignment="CENTER_LEFT">
+                        <VBox spacing="6">
+                            <Label style="-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #1e293b;" text="Panoramica" />
+                            <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Bentornato. Ecco i tuoi progetti e le tue attività in scadenza." />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleNewProject" style="-fx-background-color: #000000; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);" text="+ Nuovo Progetto" />
+                    </HBox>
+                    
+                    <!-- Sezione I Miei Progetti -->
+                    <VBox spacing="16">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label style="-fx-font-size: 14px; -fx-text-fill: #0891b2; -fx-font-weight: bold;" text="📚" />
+                            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e293b;" text="I Miei Progetti" />
+                        </HBox>
+                        
+                        <!-- Grid di Card Progetti -->
+                        <GridPane fx:id="projectsGrid" hgap="20" vgap="20">
+                            <!-- Le card verranno aggiunte dinamicamente dal controller -->
+                        </GridPane>
                     </VBox>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Button text="+ Nuovo Progetto" onAction="#handleNewProject" 
-                            style="-fx-background-color: #000000; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"/>
-                </HBox>
-                
-                <VBox spacing="15" VBox.vgrow="ALWAYS">
-                    <Label text="I Miei Progetti" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #334155;"/>
-                    <ListView fx:id="projectListView" VBox.vgrow="ALWAYS" 
-                              style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-control-inner-background: #f8f9fa; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"/>
+                    
+                    <!-- Sezione Le Mie Attività -->
+                    <VBox spacing="16" VBox.vgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label style="-fx-font-size: 14px; -fx-text-fill: #0891b2; -fx-font-weight: bold;" text="📋" />
+                            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e293b;" text="Le Mie Attività" />
+                        </HBox>
+                        
+                        <!-- Tabella Attività -->
+                        <VBox style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-border-width: 1; -fx-padding: 0;" VBox.vgrow="ALWAYS">
+                            <TableView fx:id="activitiesTable" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-table-cell-border-color: #f1f5f9; -fx-background-radius: 12;" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="activityNameColumn" text="NOME ATTIVITÀ" prefWidth="350" style="-fx-alignment: CENTER_LEFT;"/>
+                                    <TableColumn fx:id="activityProjectColumn" text="PROGETTO" prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
+                                    <TableColumn fx:id="activityDeadlineColumn" text="SCADENZA" prefWidth="150" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="activityPriorityColumn" text="PRIORITÀ" prefWidth="130" style="-fx-alignment: CENTER;"/>
+                                    <TableColumn fx:id="activityStatusColumn" text="STATO" prefWidth="150" style="-fx-alignment: CENTER;"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </VBox>
                 </VBox>
-            </VBox>
+            </ScrollPane>
         </center>
     </BorderPane>
 
-    <VBox fx:id="notificationPanel" visible="false" StackPane.alignment="TOP_LEFT" 
-          maxWidth="320" maxHeight="350"
-          style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 15, 0, 4, 4);">
-        
-        <StackPane.margin>
-            <Insets top="130" left="270"/> 
-        </StackPane.margin>
-        
-        <HBox alignment="CENTER_LEFT" style="-fx-padding: 12 16; -fx-background-color: #f8fafc; -fx-background-radius: 8 8 0 0; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
-            <Label text="Ultime Notifiche" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #64748b;"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Pulisci" onAction="#handleClearNotifications" 
-                    style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 6; -fx-background-radius: 4; -fx-cursor: hand;"/>
+    <!-- Pannello Notifiche (invariato) -->
+    <VBox fx:id="notificationPanel" maxHeight="400" maxWidth="340" style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius: 12; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 20, 0, 0, 8);" visible="false" StackPane.alignment="TOP_LEFT">
+        <StackPane.margin><Insets left="270" top="140" /></StackPane.margin>
+        <HBox alignment="CENTER_LEFT" style="-fx-padding: 16 20; -fx-background-color: #f8fafc; -fx-background-radius: 12 12 0 0; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
+            <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1e293b;" text="Ultime Notifiche" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#handleClearNotifications" style="-fx-background-color: #e2e8f0; -fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 6; -fx-cursor: hand;" text="Pulisci" />
         </HBox>
-        
-        <ListView fx:id="notificationsListView" VBox.vgrow="ALWAYS" 
-                  style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-control-inner-background: white; -fx-font-size: 12px; -fx-text-fill: #475569; -fx-padding: 5;"/>
+        <ListView fx:id="notificationsListView" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-control-inner-background: white; -fx-font-size: 13px; -fx-text-fill: #475569; -fx-padding: 8;" VBox.vgrow="ALWAYS" />
     </VBox>
-    
 </StackPane>
