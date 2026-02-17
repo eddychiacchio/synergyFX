@@ -33,7 +33,7 @@ public class DocumentController {
             int i = originalName.lastIndexOf('.');
             if (i > 0) extension = originalName.substring(i+1).toUpperCase();
             
-            String savedFilename = System.currentTimeMillis() + "_" + originalName;
+            String savedFilename = java.util.UUID.randomUUID().toString() + "_" + originalName;
             File destFile = new File(UPLOAD_DIR + File.separator + savedFilename);
             
             // 4. Copia il file (Metodo Desktop)
@@ -44,6 +44,9 @@ public class DocumentController {
             ProjectDocument doc = new ProjectDocument(newId, originalName, savedFilename, extension);
             
             p.getDocuments().add(doc);
+            
+            p.notifyObservers("È stato caricato un nuovo documento: '" + originalName + "' nel progetto '" + p.getName() + "'.");
+            
             dm.saveData();
         }
     }

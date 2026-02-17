@@ -5,7 +5,6 @@ import com.synergy.model.*;
 import com.synergy.controller.DocumentController;
 import com.synergy.controller.ProjectController;
 import com.synergy.util.SessionManager;
-import com.synergy.util.DataManager; // <-- IMPORT AGGIUNTO!
 
 import java.io.File;
 import java.io.IOException;
@@ -18,16 +17,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView; // <-- IMPORT AGGIUNTO!
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.ClipboardContent;
@@ -39,11 +29,13 @@ import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
+import javafx.scene.shape.Circle;
 
-public class ProjectDetailsController {
+// EREDITA DAL BASE CONTROLLER!
+public class ProjectDetailsController extends BaseController {
 
-    @FXML private Label usernameLabel;
-    @FXML private Label userInitialsLabel;
     @FXML private Label projectDescriptionLabel;
     @FXML private Label todoCountLabel;
     @FXML private Label doingCountLabel;
@@ -75,12 +67,12 @@ public class ProjectDetailsController {
         doingColumn.setMinHeight(600);
         doneColumn.setMinHeight(600);
         
-        setupDropTarget(todoColumn, ActivityStatus.DA_FARE, "#f8fafc");
-        setupDropTarget(doingColumn, ActivityStatus.IN_CORSO, "#fffbeb");
-        setupDropTarget(doneColumn, ActivityStatus.COMPLETATO, "#f0fdf4");
+        setupDropTarget(todoColumn, ActivityStatus.DA_FARE);
+        setupDropTarget(doingColumn, ActivityStatus.IN_CORSO);
+        setupDropTarget(doneColumn, ActivityStatus.COMPLETATO);
     }
 
-    private void setupDropTarget(VBox column, ActivityStatus targetStatus, String originalColor) {
+    private void setupDropTarget(VBox column, ActivityStatus targetStatus) {
         column.setOnDragOver(event -> {
             if (event.getGestureSource() != column && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -105,11 +97,9 @@ public class ProjectDetailsController {
             boolean success = false;
             if (db.hasString()) {
                 int activityId = Integer.parseInt(db.getString());
-                
                 projectController.updateActivityStatus(currentProject.getId(), activityId, targetStatus.name());
                 currentProject = projectController.getProjectById(currentProject.getId());
                 refreshKanban();
-                
                 success = true;
             }
             event.setDropCompleted(success);
@@ -128,12 +118,10 @@ public class ProjectDetailsController {
         
         User currentUser = SessionManager.getInstance().getCurrentUser();
         this.isAdmin = false;
+        
         if (currentUser != null) {
-            if (usernameLabel != null) usernameLabel.setText(currentUser.getName());
-            if (userInitialsLabel != null) {
-                String initials = currentUser.getName().length() >= 2 ? currentUser.getName().substring(0, 2).toUpperCase() : "U";
-                userInitialsLabel.setText(initials);
-            }
+            // Chiama il metodo della superclasse per impostare nomi e iniziali!
+            initUserHeader(currentUser);
             
             for (ProjectMembership pm : project.getMemberships()) {
                 if (pm.getUser() != null && pm.getUser().getId() == currentUser.getId()) {
@@ -166,6 +154,9 @@ public class ProjectDetailsController {
                 }
             }
         });
+        
+        loadRecentProjects(); 
+        refreshNotifications(); // Metodo ereditato
     }
 
     private void refreshKanban() {
@@ -177,15 +168,10 @@ public class ProjectDetailsController {
         String sortSelection = sortComboBox != null ? sortComboBox.getValue() : "Nessuno";
         SortStrategy strategy = null;
 
-        if ("Priorità".equals(sortSelection)) {
-            strategy = new SortByPriority();
-        } else if ("Scadenza".equals(sortSelection)) {
-            strategy = new SortByDeadline();
-        }
+        if ("Priorità".equals(sortSelection)) strategy = new SortByPriority();
+        else if ("Scadenza".equals(sortSelection)) strategy = new SortByDeadline();
 
-        if (strategy != null) {
-            strategy.sort(activities);
-        }
+        if (strategy != null) strategy.sort(activities);
 
         for (Activity a : activities) {
             VBox card = createActivityCard(a);
@@ -206,36 +192,22 @@ public class ProjectDetailsController {
         card.setPadding(new Insets(15));
         card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-border-color: #e2e8f0; -fx-border-radius: 8;");
 
-        DropShadow normalShadow = new DropShadow(5, Color.rgb(0, 0, 0, 0.05));
-        normalShadow.setOffsetY(2);
-        DropShadow hoverShadow = new DropShadow(10, Color.rgb(0, 0, 0, 0.10));
-        hoverShadow.setOffsetY(4);
+        DropShadow normalShadow = new DropShadow(5, Color.rgb(0, 0, 0, 0.05)); normalShadow.setOffsetY(2);
+        DropShadow hoverShadow = new DropShadow(10, Color.rgb(0, 0, 0, 0.10)); hoverShadow.setOffsetY(4);
         
         card.setEffect(normalShadow);
-
-        card.setOnMouseEntered(e -> {
-            card.setEffect(hoverShadow);
-            card.setTranslateY(-2);
-        });
-        card.setOnMouseExited(e -> {
-            card.setEffect(normalShadow);
-            card.setTranslateY(0);
-        });
+        card.setOnMouseEntered(e -> { card.setEffect(hoverShadow); card.setTranslateY(-2); });
+        card.setOnMouseExited(e -> { card.setEffect(normalShadow); card.setTranslateY(0); });
 
         Label title = new Label(a.getTitle());
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e293b;");
-        title.setWrapText(true);
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e293b;"); title.setWrapText(true);
         
         Label priority = new Label(a.getPriority().toString());
         String basePriorityStyle = "-fx-padding: 3 8 3 8; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 10px; ";
         
-        if (a.getPriority() == PriorityLevel.BASSA) {
-            priority.setStyle(basePriorityStyle + "-fx-text-fill: #10b981; -fx-background-color: #d1fae5;");
-        } else if (a.getPriority() == PriorityLevel.MEDIA) {
-            priority.setStyle(basePriorityStyle + "-fx-text-fill: #f59e0b; -fx-background-color: #fef3c7;");
-        } else if (a.getPriority() == PriorityLevel.ALTA) {
-            priority.setStyle(basePriorityStyle + "-fx-text-fill: #ef4444; -fx-background-color: #fee2e2;");
-        }
+        if (a.getPriority() == PriorityLevel.BASSA) priority.setStyle(basePriorityStyle + "-fx-text-fill: #10b981; -fx-background-color: #d1fae5;");
+        else if (a.getPriority() == PriorityLevel.MEDIA) priority.setStyle(basePriorityStyle + "-fx-text-fill: #f59e0b; -fx-background-color: #fef3c7;");
+        else if (a.getPriority() == PriorityLevel.ALTA) priority.setStyle(basePriorityStyle + "-fx-text-fill: #ef4444; -fx-background-color: #fee2e2;");
 
         card.getChildren().addAll(priority, title);
         
@@ -255,7 +227,6 @@ public class ProjectDetailsController {
         });
 
         ContextMenu contextMenu = new ContextMenu();
-        
         MenuItem editItem = new MenuItem("✏️ Modifica Attività");
         editItem.setOnAction(e -> openEditActivityModal(a));
         contextMenu.getItems().add(editItem);
@@ -270,10 +241,7 @@ public class ProjectDetailsController {
             });
             contextMenu.getItems().add(deleteItem);
         }
-
-        card.setOnContextMenuRequested(event -> {
-            contextMenu.show(card, event.getScreenX(), event.getScreenY());
-        });
+        card.setOnContextMenuRequested(event -> contextMenu.show(card, event.getScreenX(), event.getScreenY()));
 
         return card;
     }
@@ -283,43 +251,21 @@ public class ProjectDetailsController {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/activity_form.fxml"));
             Parent root = loader.load();
             ActivityFormController controller = loader.getController();
-            
-            controller.setProject(currentProject);
-            controller.setActivityToEdit(a); 
-
-            Stage stage = new Stage();
-            stage.setTitle("Modifica: " + a.getTitle());
-            stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(projectNameLabel.getScene().getWindow());
-            stage.showAndWait();
+            controller.setProject(currentProject); controller.setActivityToEdit(a); 
+            Stage stage = new Stage(); stage.setTitle("Modifica: " + a.getTitle());
+            stage.setScene(new Scene(root)); stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectNameLabel.getScene().getWindow()); stage.showAndWait();
             
             currentProject = projectController.getProjectById(currentProject.getId());
             refreshKanban(); 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
-    private void handleDashboard() throws IOException {
-        App.setRoot("dashboard");
-    }
+    private void handleDashboard() throws IOException { App.setRoot("dashboard"); }
 
     @FXML
-    private void handleNotifications() {
-        System.out.println("Notifiche cliccate dalla Sidebar");
-    }
-
-    @FXML
-    private void handleChat() {
-        System.out.println("Chat cliccata dalla Sidebar");
-    }
-    
-    @FXML
-    private void handleBack() throws IOException {
-        handleDashboard();
-    }
+    private void handleBack() throws IOException { handleDashboard(); }
     
     private void refreshDocuments() {
         if (currentProject != null) {
@@ -333,29 +279,21 @@ public class ProjectDetailsController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Seleziona il documento da caricare");
         File selectedFile = fileChooser.showOpenDialog(documentsTable.getScene().getWindow());
-        
         if (selectedFile != null) {
             try {
                 documentController.uploadFile(currentProject.getId(), selectedFile);
                 currentProject = projectController.getProjectById(currentProject.getId());
                 refreshDocuments();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
     
     private void openDocument(ProjectDocument doc) {
         try {
             File fileToOpen = documentController.getDocumentFile(doc);
-            if (fileToOpen.exists()) {
-                Desktop.getDesktop().open(fileToOpen);
-            } else {
-                System.out.println("Errore: Il file non è più presente in " + fileToOpen.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            if (fileToOpen.exists()) Desktop.getDesktop().open(fileToOpen);
+            else System.out.println("Errore: Il file non è più presente in " + fileToOpen.getAbsolutePath());
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -370,9 +308,7 @@ public class ProjectDetailsController {
     }
     
     @FXML
-    private void handleSortChange() {
-        refreshKanban();
-    }
+    private void handleSortChange() { refreshKanban(); }
     
     @FXML
     private void handleNewActivity() {
@@ -381,101 +317,67 @@ public class ProjectDetailsController {
             Parent root = loader.load();
             ActivityFormController controller = loader.getController();
             controller.setProject(currentProject);
-
-            Stage stage = new Stage();
-            stage.setTitle("Crea Nuova Attività");
-            stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.initOwner(projectNameLabel.getScene().getWindow());
-            stage.showAndWait();
+            Stage stage = new Stage(); stage.setTitle("Crea Nuova Attività");
+            stage.setScene(new Scene(root)); stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectNameLabel.getScene().getWindow()); stage.showAndWait();
             
             currentProject = projectController.getProjectById(currentProject.getId());
             refreshKanban(); 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
     
     @FXML
     private void handleInviteMember() {
         if (!isAdmin) return;
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Invita Membro");
-        dialog.setHeaderText("Invita un nuovo collaboratore in " + currentProject.getName());
+        dialog.setTitle("Invita Membro"); dialog.setHeaderText("Invita un nuovo collaboratore in " + currentProject.getName());
         dialog.setContentText("Inserisci l'email dell'utente da invitare:");
-
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()) {
             String email = result.get().trim();
             if (!email.isEmpty()) {
                 boolean success = projectController.inviteUserToProject(currentProject.getId(), email);
-                if (success) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Successo");
-                    alert.setHeaderText(null);
-                    alert.setContentText("L'utente è stato aggiunto al progetto!");
-                    alert.showAndWait();
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Errore");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Impossibile invitare l'utente.");
-                    alert.showAndWait();
-                }
+                Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+                alert.setTitle(success ? "Successo" : "Errore"); alert.setHeaderText(null);
+                alert.setContentText(success ? "L'utente è stato aggiunto al progetto!" : "Impossibile invitare l'utente.");
+                alert.showAndWait();
             }
         }
     }
     
-    @FXML private VBox notificationPanel;
-    @FXML private ListView<String> notificationsListView;
-    @FXML private Label notificationBadge;
-
-    @FXML
-    private void toggleNotifications() {
-        if (notificationPanel != null) {
-            notificationPanel.setVisible(!notificationPanel.isVisible());
-            if (notificationPanel.isVisible()) refreshNotifications();
-        }
-    }
-
-    @FXML
-    private void hideNotificationsIfClickOutside() {
-        if (notificationPanel != null && notificationPanel.isVisible()) {
-            notificationPanel.setVisible(false);
-        }
-    }
-
-    @FXML
-    private void handleClearNotifications() {
+    private void loadRecentProjects() {
+        if (recentProjectsList == null) return;
+        recentProjectsList.getChildren().clear();
         User currentUser = SessionManager.getInstance().getCurrentUser();
+        
         if (currentUser != null) {
-            currentUser.clearNotifications();
-            DataManager.getInstance().saveData();
-            refreshNotifications();
-            if (notificationPanel != null) notificationPanel.setVisible(false);
-        }
-    }
-
-    private void refreshNotifications() {
-        User currentUser = SessionManager.getInstance().getCurrentUser();
-        if (currentUser != null && notificationsListView != null) {
-            List<String> notifs = currentUser.getNotifications();
-            notificationsListView.getItems().clear();
-            if (notifs != null && !notifs.isEmpty()) {
-                notificationsListView.getItems().addAll(notifs);
-                if (notificationBadge != null) {
-                    notificationBadge.setText(String.valueOf(notifs.size()));
-                    notificationBadge.setVisible(true);
+            List<Project> projects = projectController.getProjectsByUser(currentUser);
+            for (Project project : projects) {
+                HBox projectItem = new HBox(8); projectItem.setAlignment(Pos.CENTER_LEFT);
+                Circle indicator = new Circle(4); Label projectNameLabel = new Label(project.getName());
+                boolean isCurrentProject = (currentProject != null && project.getId() == currentProject.getId());
+                
+                if (isCurrentProject) {
+                    projectItem.setStyle("-fx-padding: 8 12; -fx-background-color: #1e293b; -fx-background-radius: 6; -fx-cursor: default; -fx-border-color: #22d3ee; -fx-border-width: 0 0 0 4;");
+                    indicator.setFill(Color.web("#22d3ee")); 
+                    projectNameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;");
+                } else {
+                    projectItem.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: transparent; -fx-border-width: 0 0 0 4;");
+                    indicator.setFill(Color.web("#64748b")); 
+                    projectNameLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-font-weight: 600;");
+                    projectItem.setOnMouseEntered(e -> {
+                        projectItem.setStyle("-fx-padding: 8 12; -fx-background-color: #1e293b; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: transparent; -fx-border-width: 0 0 0 4;");
+                        projectNameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 600;");
+                    });
+                    projectItem.setOnMouseExited(e -> {
+                        projectItem.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; -fx-cursor: hand; -fx-border-color: transparent; -fx-border-width: 0 0 0 4;");
+                        projectNameLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-font-weight: 600;");
+                    });
+                    projectItem.setOnMouseClicked(e -> setProject(project));
                 }
-            } else {
-                if (notificationBadge != null) notificationBadge.setVisible(false);
+                projectItem.getChildren().addAll(indicator, projectNameLabel);
+                recentProjectsList.getChildren().add(projectItem);
             }
         }
-    }
-
-    @FXML
-    private void handleLogout() throws java.io.IOException {
-        SessionManager.getInstance().logout();
-        App.setRoot("login");
     }
 }

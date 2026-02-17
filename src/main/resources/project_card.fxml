@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="cardRoot" spacing="14" prefWidth="480" minHeight="160" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.synergy.controller.fx.ProjectCardController">
+    
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label fx:id="iconLabel" text="&lt;/&gt;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="roleLabel"/>
+    </HBox>
+    
+    <Label fx:id="projectName" wrapText="true"/>
+    <Label fx:id="projectDescription" wrapText="true" maxHeight="40"/>
+    
+    <VBox spacing="8">
+        <StackPane alignment="CENTER_LEFT" maxHeight="6">
+            <Region fx:id="bgBar" prefHeight="6" maxWidth="Infinity"/>
+            <Region fx:id="fillBar" prefHeight="6"/>
+        </StackPane>
+        
+        <HBox alignment="CENTER_LEFT">
+            <Label fx:id="percentageLabel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox fx:id="avatarsBox" spacing="-8"/>
+        </HBox>
+    </VBox>
+</VBox>

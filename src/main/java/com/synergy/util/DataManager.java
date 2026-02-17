@@ -6,6 +6,8 @@ import com.synergy.model.ProjectMembership;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DataManager {
     
@@ -14,6 +16,7 @@ public class DataManager {
     
     private List<User> users;
     private List<Project> projects;
+    private final ExecutorService saveExecutor = Executors.newSingleThreadExecutor();
 
     // FILE DI SALVATAGGIO (Percorsi Assoluti nella cartella Utente per evitare errori di permessi)
     private final String FILE_USERS = System.getProperty("user.home") + File.separator + "synergy_users.ser";
@@ -44,24 +47,28 @@ public class DataManager {
     public List<User> getUsers() { return users; }
     public List<Project> getProjects() { return projects; }
 
-    // --- SALVATAGGIO ---
+ // --- SALVATAGGIO ASINCRONO (NON BLOCCA PIÙ LA GRAFICA!) ---
     public void saveData() {
-        try {
-            // Salva Utenti
-            try (ObjectOutputStream outUser = new ObjectOutputStream(new FileOutputStream(FILE_USERS))) {
-                outUser.writeObject(users);
+        // Deleghiamo il compito gravoso al thread in background
+        saveExecutor.submit(() -> {
+            try {
+                // Salva Utenti
+                try (ObjectOutputStream outUser = new ObjectOutputStream(new FileOutputStream(FILE_USERS))) {
+                    outUser.writeObject(users);
+                }
+                // Salva Progetti
+                try (ObjectOutputStream outProj = new ObjectOutputStream(new FileOutputStream(FILE_PROJECTS))) {
+                    outProj.writeObject(projects);
+                }
+                System.out.println("✅ Dati salvati in background in: " + FILE_PROJECTS);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            // Salva Progetti
-            try (ObjectOutputStream outProj = new ObjectOutputStream(new FileOutputStream(FILE_PROJECTS))) {
-                outProj.writeObject(projects);
-            }
-            System.out.println("✅ Dati salvati in: " + FILE_PROJECTS);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     // --- CARICAMENTO ---
+    @SuppressWarnings("unchecked")
     private void loadData() {
         // Carica Utenti
         File fUsers = new File(FILE_USERS);

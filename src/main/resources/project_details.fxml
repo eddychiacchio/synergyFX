@@ -36,6 +36,7 @@
                         <Region HBox.hgrow="ALWAYS" />
                         <Label fx:id="notificationBadge" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6; -fx-background-radius: 10;" text="0" visible="false" />
                     </HBox>
+                    <Label text="PROGETTI RECENTI" style="-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 20 16 8 16;"/>
                     <VBox fx:id="recentProjectsList" spacing="4" style="-fx-padding: 0 8;" />
                 </VBox>
                 
@@ -50,7 +51,7 @@
                             <Label style="-fx-text-fill: #10b981; -fx-font-size: 12px;" text="Online" />
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 16px;" text="Exit" />
+                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 14px;" text="Exit" />
                     </HBox>
                 </VBox>
             </VBox>

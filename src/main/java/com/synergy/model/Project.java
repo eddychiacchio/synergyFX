@@ -40,7 +40,7 @@ public class Project implements Serializable, ISubject {
         for (ProjectMembership pm : memberships) {
             User u = pm.getUser();
             // Chiama il metodo update() dell'utente
-            u.update("[Progetto: " + this.name + "] " + message);
+            u.update(message);
         }
     }
 

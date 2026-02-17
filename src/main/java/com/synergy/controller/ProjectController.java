@@ -6,8 +6,6 @@ import com.synergy.factory.ActivityFactory;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-
 
 public class ProjectController {
 
@@ -37,41 +35,33 @@ public class ProjectController {
         return null;
     }
     
- // Metodo CREAZIONE con FACTORY METHOD
     public void addActivityToProject(int projectId, String title, String priorityStr, String dateStr, String[] subTasks) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
         
         if (p != null) {
-            // 1. Preparazione Dati (Il Controller gestisce solo il parsing HTTP/Input)
+
             PriorityLevel priority = PriorityLevel.valueOf(priorityStr);
             
             LocalDate deadline = null;
             if (dateStr != null && !dateStr.isEmpty()) {
                 deadline = LocalDate.parse(dateStr);
             } else {
-                deadline = LocalDate.now().plusDays(7); // Default 1 settimana
+                deadline = LocalDate.now().plusDays(7);
             }
 
-            // 2. USO DEL FACTORY METHOD
-            // Il Controller delega TUTTA la logica di creazione alla Factory.
-            // Non sa se sta ricevendo un SingleTask o un TaskGroup, e non gli interessa.
             Activity newActivity = ActivityFactory.createActivity(title, priority, deadline, subTasks);
             
             newActivity.setTitle(title);
             
-            // 3. Aggiungo al progetto
             p.getActivities().add(newActivity);
             
-            // 4. Notifico gli Observer (Utenti) - Pattern Observer
-            p.notifyObservers("Nuova attività aggiunta: " + title);
+            p.notifyObservers("È stata assegnata una nuova attività: '" + title + "' nel progetto '" + p.getName() + "'.");
             
-            // 5. Salvo
             dm.saveData();
         }
     }
     
-    // Metodo DELETE
     public boolean deleteActivity(int projectId, int activityId) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
@@ -98,7 +88,6 @@ public class ProjectController {
         return false;
     }
     
-    // Metodo UPDATE (Status)
     public boolean updateActivityStatus(int projectId, int activityId, String newStatusStr) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
@@ -123,8 +112,7 @@ public class ProjectController {
         }
         return false;
     }
-    
-    // Metodo MODIFICA CONTENUTO
+
     public void updateActivityContent(int projectId, int activityId, String title, String priorityStr, String dateStr, String[] subTasks) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
@@ -135,7 +123,7 @@ public class ProjectController {
                 Activity a = list.get(i);
                 
                 if (a.getId() == activityId) {
-                    // Usa i setter che abbiamo aggiunto in Activity.java
+                	
                     a.setTitle(title);
                     a.setPriority(PriorityLevel.valueOf(priorityStr));
                     
@@ -162,6 +150,7 @@ public class ProjectController {
                             }
                         }
                     } else if (newSubtasksExist) {
+                    	
                         TaskGroup newGroup = new TaskGroup(a.getId(), title, PriorityLevel.valueOf(priorityStr));
                         newGroup.setStatus(a.getStatus());
                         newGroup.setDeadline(a.getDeadline()); 
@@ -185,15 +174,13 @@ public class ProjectController {
             }
         }
     }
-    
-    // --- GESTIONE TEAM ---
+
     public boolean inviteUserToProject(int projectId, String userEmail) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
         
         if (p == null) return false;
-        
-        // 1. Cerco l'utente nel database globale
+
         User userfound = null;
         for (User u : dm.getUsers()) {
             if (u.getEmail().equalsIgnoreCase(userEmail)) {
@@ -201,28 +188,24 @@ public class ProjectController {
                 break;
             }
         }
-        
-        // Se l'utente non esiste, fallisco
+
         if (userfound == null) {
             System.out.println("Utente non trovato: " + userEmail);
             return false;
         }
-        
-        // 2. Controllo se è GIÀ membro del progetto
+
         for (ProjectMembership pm : p.getMemberships()) {
             if (pm.getUser().getId() == userfound.getId()) {
                 System.out.println("Utente già presente nel progetto.");
                 return false; 
             }
         }
-        
-        // 3. Creo la nuova membership (Ruolo default: MEMBER)
+
         ProjectMembership membership = new ProjectMembership();
         membership.setProject(p);
         membership.setUser(userfound);
-        membership.setIsAdmin(false); // Solo chi crea è admin per ora
-        
-        // 4. Aggiungo e Salvo
+        membership.setIsAdmin(false);
+
         p.getMemberships().add(membership);
         dm.saveData();
         
