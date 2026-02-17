@@ -53,6 +53,8 @@ public class ProjectDetailsController {
     @FXML private Label projectNameLabel;
     @FXML private TableView<ProjectDocument> documentsTable;
     @FXML private TableColumn<ProjectDocument, String> docNameColumn;
+    @FXML private TableColumn<ProjectDocument, String> docTypeColumn;
+    @FXML private TableColumn<ProjectDocument, java.time.LocalDate> docDateColumn;
     @FXML private ComboBox<String> sortComboBox;
     
     @FXML private Button inviteMemberBtn;
@@ -152,6 +154,8 @@ public class ProjectDetailsController {
         refreshKanban();
         
         docNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        if (docTypeColumn != null) docTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        if (docDateColumn != null) docDateColumn.setCellValueFactory(new PropertyValueFactory<>("uploadDate"));
         refreshDocuments();
         
         documentsTable.setOnMouseClicked(event -> {

@@ -28,15 +28,13 @@
                 </HBox>
                 
                 <VBox spacing="8" style="-fx-padding: 0 16 0 16;" VBox.vgrow="ALWAYS">
-                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" style="-fx-background-color: #1e293b; -fx-text-fill: #22d3ee; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-border-color: #22d3ee; -fx-border-width: 0 0 0 4; -fx-cursor: hand;" text="🏠 Dashboard" />
+                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" style="-fx-background-color: #1e293b; -fx-text-fill: #22d3ee; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-border-color: #22d3ee; -fx-border-width: 0 0 0 4; -fx-cursor: hand;" text="Dashboard" />
                     
                     <HBox alignment="CENTER_LEFT" onMouseClicked="#toggleNotifications" spacing="10" style="-fx-padding: 10 16; -fx-background-radius: 4; -fx-cursor: hand;">
-                        <Label style="-fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px;" text="🔔 Notifiche" />
+                        <Label style="-fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px;" text="Notifiche" />
                         <Region HBox.hgrow="ALWAYS" />
                         <Label fx:id="notificationBadge" style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 2 6; -fx-background-radius: 10;" text="3" visible="true" />
                     </HBox>
-                    
-                    <Button alignment="CENTER_LEFT" maxWidth="Infinity" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 16; -fx-cursor: hand;" text="💬 Chat" />
                     
                     <Label style="-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 20 16 8 16;" text="PROGETTI RECENTI" />
                     
@@ -54,7 +52,7 @@
                             <Label style="-fx-text-fill: #10b981; -fx-font-size: 12px;" text="Online" />
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: bold;" text="⎋" />
+                        <Button onAction="#handleLogout" style="-fx-background-color: transparent; -fx-text-fill: #ef4444; -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: bold;" text="Exit" />
                     </HBox>
                 </VBox>
             </VBox>
@@ -73,7 +71,7 @@
                             <Label style="-fx-font-size: 14px; -fx-text-fill: #64748b;" text="Bentornato. Ecco i tuoi progetti e le tue attività in scadenza." />
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
-                        <Button onAction="#handleNewProject" style="-fx-background-color: #000000; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);" text="+ Nuovo Progetto" />
+                        <Button onAction="#handleNewProject" style="-fx-background-color: #0f172a; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12 24; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);" text="+ Nuovo Progetto" />
                     </HBox>
                     
                     <!-- Sezione I Miei Progetti -->

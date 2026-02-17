@@ -287,4 +287,14 @@ public class ProjectController {
         
         return removed;
     }
+    
+ // --- Metodo per MODIFICARE un progetto esistente ---
+    public void updateProjectDetails(int projectId, String newName, String newDesc) {
+        Project project = getProjectById(projectId);
+        if (project != null) {
+            project.setName(newName);
+            project.setDescription(newDesc);
+            DataManager.getInstance().saveData(); // Salva immediatamente le modifiche nel file .ser
+        }
+    }
 }

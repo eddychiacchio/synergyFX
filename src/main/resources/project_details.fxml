@@ -149,6 +149,8 @@
                                     <TableView fx:id="documentsTable" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-table-cell-border-color: #f1f5f9;" VBox.vgrow="ALWAYS">
                                         <columns>
                                             <TableColumn fx:id="docNameColumn" prefWidth="600" style="-fx-font-size: 14px; -fx-alignment: CENTER_LEFT;" text="Nome File" />
+                                            <TableColumn fx:id="docTypeColumn" text="Formato" prefWidth="100" style="-fx-font-size: 14px; -fx-alignment: CENTER;"/>
+        									<TableColumn fx:id="docDateColumn" text="Caricato il" prefWidth="150" style="-fx-font-size: 14px; -fx-alignment: CENTER;"/>
                                         </columns>
                                     </TableView>
                                 </VBox>

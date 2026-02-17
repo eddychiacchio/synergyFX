@@ -260,8 +260,8 @@ public class DashboardController {
         }
         int progress = (totalTasks == 0) ? 0 : (completedTasks * 100) / totalTasks;
         
-        String borderColor = progress < 33 ? "#ef4444" : progress < 66 ? "#f59e0b" : "#10b981";
-        String progressColor = progress < 33 ? "#ef4444" : progress < 66 ? "#f59e0b" : "#10b981";
+        String borderColor = "#0891b2";
+        String progressColor = "#0891b2";
         
         VBox card = new VBox(14);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: " + borderColor + "; -fx-border-width: 0 0 0 4; -fx-border-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2); -fx-cursor: hand;");
@@ -301,6 +301,7 @@ public class DashboardController {
         Region fillBar = new Region();
         fillBar.setStyle("-fx-background-color: " + progressColor + "; -fx-background-radius: 4;");
         fillBar.setPrefHeight(6);
+        fillBar.setMaxWidth(Region.USE_PREF_SIZE);
         fillBar.prefWidthProperty().bind(bgBar.widthProperty().multiply(progress / 100.0));
         progressBar.getChildren().addAll(bgBar, fillBar);
         
@@ -343,7 +344,10 @@ public class DashboardController {
         // CLICK DESTRO PER ELIMINARE
         if (isAdmin) {
             ContextMenu contextMenu = new ContextMenu();
-            MenuItem deleteItem = new MenuItem("🗑️ Elimina Progetto");
+            MenuItem editItem = new MenuItem("Modifica Progetto");
+            editItem.setStyle("-fx-font-weight: bold;");
+            editItem.setOnAction(e -> openEditProjectModal(project));
+            MenuItem deleteItem = new MenuItem("Elimina Progetto");
             deleteItem.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
             deleteItem.setOnAction(e -> {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -359,7 +363,7 @@ public class DashboardController {
                     }
                 });
             });
-            contextMenu.getItems().add(deleteItem);
+            contextMenu.getItems().addAll(editItem, deleteItem);
             card.setOnContextMenuRequested(e -> {
                 contextMenu.show(card, e.getScreenX(), e.getScreenY());
                 e.consume();
@@ -411,7 +415,7 @@ public class DashboardController {
                 projectItem.setStyle("-fx-padding: 8 12; -fx-background-radius: 6; -fx-cursor: hand;");
                 
                 Circle indicator = new Circle(4);
-                indicator.setFill(Color.web("#10b981"));
+                indicator.setFill(Color.web("#0891b2"));
                 
                 Label projectName = new Label(project.getName());
                 projectName.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-font-weight: 600;");
@@ -520,6 +524,31 @@ public class DashboardController {
             loadProjects();
             loadActivities();
             loadRecentProjects();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void openEditProjectModal(Project project) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/project_form.fxml"));
+            Parent root = loader.load();
+            
+            // Recupera il controller e passagli il progetto da modificare!
+            ProjectFormController controller = (ProjectFormController) loader.getController();
+            controller.setProjectToEdit(project);
+            
+            Stage stage = new Stage();
+            stage.setTitle("Modifica Progetto");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(projectsGrid.getScene().getWindow());
+            stage.showAndWait();
+            
+            // Ricarica la grafica della dashboard una volta chiuso il pop-up
+            loadProjects();
+            loadRecentProjects();
+            loadActivities();
         } catch (IOException e) {
             e.printStackTrace();
         }

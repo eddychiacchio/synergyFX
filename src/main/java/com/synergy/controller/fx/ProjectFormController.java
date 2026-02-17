@@ -16,7 +16,17 @@ public class ProjectFormController {
 
     @FXML private TextField nameField;
     @FXML private TextArea descField;
+    
+    private ProjectFormController projectController = new ProjectFormController();
 
+    private Project projectToEdit = null;
+    
+    public void setProjectToEdit(Project project) {
+        this.projectToEdit = project;
+        if (nameField != null) nameField.setText(project.getName());
+        if (descField != null) descField.setText(project.getDescription());
+    }
+    
     @FXML
     private void handleSave() {
         String name = nameField.getText();
