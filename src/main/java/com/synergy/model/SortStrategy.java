@@ -1,6 +1,5 @@
 package com.synergy.model;
 
-import com.synergy.model.Activity;
 import java.util.List;
 
 public interface SortStrategy {

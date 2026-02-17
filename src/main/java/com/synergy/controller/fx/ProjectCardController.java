@@ -6,13 +6,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class ProjectCardController {
 
     @FXML private VBox cardRoot;
-    @FXML private Label iconLabel;
     @FXML private Label roleLabel;
     @FXML private Label projectName;
     @FXML private Label projectDescription;
@@ -58,7 +56,6 @@ public class ProjectCardController {
         roleLabel.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 6;");
 
         String mainColor = "#0891b2";
-        iconLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: " + mainColor + "; -fx-font-weight: bold;");
         cardRoot.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: " + mainColor + "; -fx-border-width: 0 0 0 4; -fx-border-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2); -fx-cursor: hand;");
         
         bgBar.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 4;");

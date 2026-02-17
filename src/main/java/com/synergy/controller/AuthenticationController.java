@@ -3,7 +3,6 @@ package com.synergy.controller;
 import com.synergy.model.User;
 import com.synergy.util.DataManager;
 import java.util.List;
-import java.util.Random;
 
 public class AuthenticationController {
 

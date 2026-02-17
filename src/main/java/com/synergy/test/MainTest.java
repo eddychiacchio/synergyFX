@@ -1,7 +1,7 @@
 package com.synergy.test;
+
 import com.synergy.model.User;
 import com.synergy.util.DataManager;
-import java.util.List;
 
 public class MainTest {
     public static void main(String[] args) {
