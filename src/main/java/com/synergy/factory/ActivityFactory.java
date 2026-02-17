@@ -3,13 +3,10 @@ package com.synergy.factory;
 import com.synergy.model.*;
 import java.time.LocalDate;
 
-public class ActivityFactory {
+public class ActivityFactory implements IActivityFactory{
 
-    /**
-     * Factory Method Statico.
-     * Analizza i parametri e decide se creare un SingleTask o un TaskGroup.
-     */
-    public static Activity createActivity(String title, PriorityLevel priority, LocalDate deadline, String[] subTasks) {
+    @Override
+    public Activity createActivity(String title, PriorityLevel priority, LocalDate deadline, String[] subTasks) {
         
         // 1. Generazione ID univoco (incapsuliamo qui la logica)
         int id = (int) (System.currentTimeMillis() & 0xfffffff);

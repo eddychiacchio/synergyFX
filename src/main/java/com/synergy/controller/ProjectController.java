@@ -2,13 +2,19 @@ package com.synergy.controller;
 
 import com.synergy.model.*;
 import com.synergy.util.DataManager;
-import com.synergy.factory.ActivityFactory;
+import com.synergy.factory.*;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class ProjectController {
 
+	private IActivityFactory activityFactory;
+	
+	public ProjectController() {
+        this.activityFactory = new ActivityFactory();
+    }
+	
     public void createProject(String name, String description, User creator) {
         DataManager dm = DataManager.getInstance();
         
@@ -50,7 +56,7 @@ public class ProjectController {
                 deadline = LocalDate.now().plusDays(7);
             }
 
-            Activity newActivity = ActivityFactory.createActivity(title, priority, deadline, subTasks);
+            Activity newActivity = activityFactory.createActivity(title, priority, deadline, subTasks);
             
             newActivity.setTitle(title);
             
