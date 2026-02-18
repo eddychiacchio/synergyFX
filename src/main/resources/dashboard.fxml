@@ -19,7 +19,7 @@
     
     <BorderPane style="-fx-background-color: #f8f9fa;">
         
-        <!-- SIDEBAR SINISTRA (invariata) -->
+    
         <left>
             <VBox prefWidth="260" spacing="10" style="-fx-background-color: #0f172a;">
                 <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 24;">
