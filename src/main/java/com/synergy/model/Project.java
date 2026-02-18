@@ -25,15 +25,10 @@ public class Project implements Serializable, ISubject {
     // --- METODI OBSERVER (PATTERN) ---
 
     @Override
-    public void attach(IObserver o) {
-        // La logica è gestita tramite ProjectMembership nel Controller, 
-        // ma qui formalmente rispettiamo l'interfaccia.
-    }
+    public void attach(IObserver o) {}
 
     @Override
-    public void detach(IObserver o) {
-        // Idem come sopra
-    }
+    public void detach(IObserver o) {}
 
     @Override
     public void notifyObservers(String message) {
@@ -42,6 +37,11 @@ public class Project implements Serializable, ISubject {
             // Chiama il metodo update() dell'utente
             u.update(message);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return this.name;
     }
 
     // --- GETTERS & SETTERS ---
@@ -65,10 +65,5 @@ public class Project implements Serializable, ISubject {
     public List<ProjectDocument> getDocuments() {
         if (documents == null) documents = new ArrayList<>();
         return documents;
-    }
-    
-    @Override
-    public String toString() {
-        return this.name;
     }
 }

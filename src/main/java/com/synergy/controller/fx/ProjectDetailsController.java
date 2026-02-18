@@ -166,7 +166,7 @@ public class ProjectDetailsController extends BaseController {
 
         List<Activity> activities = currentProject.getActivities();
         String sortSelection = sortComboBox != null ? sortComboBox.getValue() : "Nessuno";
-        SortStrategy strategy = null;
+        ISortStrategy strategy = null;
 
         if ("Priorità".equals(sortSelection)) strategy = new SortByPriority();
         else if ("Scadenza".equals(sortSelection)) strategy = new SortByDeadline();

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SortByDeadline implements SortStrategy {
+public class SortByDeadline implements ISortStrategy {
     @Override
     public void sort(List<Activity> activities) {
         Collections.sort(activities, new Comparator<Activity>() {

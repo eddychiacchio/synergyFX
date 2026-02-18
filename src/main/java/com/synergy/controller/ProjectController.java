@@ -227,7 +227,7 @@ public class ProjectController {
         List<Activity> sortedList = new ArrayList<>(p.getActivities());
 
         // 2. Scelgo la strategia (Context)
-        SortStrategy strategy;
+        ISortStrategy strategy;
 
         if ("priority".equals(sortType)) {
             strategy = new SortByPriority();

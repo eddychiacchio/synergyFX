@@ -8,16 +8,13 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Carica la prima schermata: Login
+    	
         scene = new Scene(loadFXML("login"), 800, 600);
         
         stage.setScene(scene);
@@ -25,9 +22,6 @@ public class App extends Application {
         stage.show();
     }
 
-    /**
-     * Metodo statico per cambiare schermata da qualsiasi controller.
-     */
     public static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
