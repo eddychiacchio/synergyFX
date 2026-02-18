@@ -29,6 +29,8 @@ Per risolvere specifiche problematiche di design, sono stati implementati i segu
 4. 🔴 **Strategy Pattern (Behavioral):** Utilizzato per incapsulare gli algoritmi di ordinamento (`SortByPriority`, `SortByDeadline`) dietro l'interfaccia `ISortStrategy`, permettendo al Controller di variare il criterio di ordinamento a runtime.
 5. 🟣 **Singleton Pattern (Creational):** Garantisce un unico punto di accesso globale per la gestione dello stato dell'utente (`SessionManager`) e per l'I/O asincrono su file (`DataManager`).
 
+![Diagramma UML](docs/UML_SYNERGY.jpg)
+
 ---
 
 ## 🛠️ Tecnologie Utilizzate
