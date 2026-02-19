@@ -34,7 +34,7 @@ public class Project implements Serializable, ISubject {
             User user = (User) o;
             
             // Controlliamo tramite Stream API se l'utente è già tra i membri (evita duplicati)
-            boolean alreadyMember = memberships.stream()
+            boolean alreadyMember = getMemberships().stream()
                 .anyMatch(pm -> pm.getUser().getId() == user.getId());
                 
             if (!alreadyMember) {
@@ -51,7 +51,7 @@ public class Project implements Serializable, ISubject {
             User user = (User) o;
             
             // Rimuove la ProjectMembership in cui l'ID dell'utente corrisponde a quello passato
-            memberships.removeIf(pm -> pm.getUser().getId() == user.getId());
+            getMemberships().removeIf(pm -> pm.getUser().getId() == user.getId());
         }
     }
 

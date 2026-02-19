@@ -39,7 +39,7 @@ public class User implements Serializable, IObserver {
         
         // aggiunge la stringa di notifica ricevuta in cima alla lista (indice 0), 
         // così la più recente sarà la prima ad essere mostrata nell'interfaccia.
-        notifications.add(0, message);
+        getNotifications().add(0, message);
     }
     
     // metodo per recuperare e leggere tutte le notifiche dell'utente
