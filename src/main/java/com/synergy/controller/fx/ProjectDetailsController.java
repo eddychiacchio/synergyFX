@@ -2,6 +2,9 @@ package com.synergy.controller.fx;
 
 import com.synergy.App;
 import com.synergy.model.*;
+import com.synergy.strategy.ISortStrategy;
+import com.synergy.strategy.SortByDeadline;
+import com.synergy.strategy.SortByPriority;
 import com.synergy.controller.DocumentController;
 import com.synergy.controller.ProjectController;
 import com.synergy.util.SessionManager;

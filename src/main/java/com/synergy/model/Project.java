@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.synergy.pattern.observer.IObserver;
+import com.synergy.pattern.observer.ISubject;
+
 // Implementa ISubject
 public class Project implements Serializable, ISubject {
     private static final long serialVersionUID = 1L;
@@ -25,10 +28,32 @@ public class Project implements Serializable, ISubject {
     // --- METODI OBSERVER (PATTERN) ---
 
     @Override
-    public void attach(IObserver o) {}
+    public void attach(IObserver o) {
+    	// Verifichiamo che l'Observer passato sia effettivamente un User
+        if (o instanceof User) {
+            User user = (User) o;
+            
+            // Controlliamo tramite Stream API se l'utente è già tra i membri (evita duplicati)
+            boolean alreadyMember = memberships.stream()
+                .anyMatch(pm -> pm.getUser().getId() == user.getId());
+                
+            if (!alreadyMember) {
+                // Crea il legame fisico e lo aggiunge alla lista
+                ProjectMembership newMembership = new ProjectMembership(this, user);
+                memberships.add(newMembership);
+            }
+        }
+    }
 
     @Override
-    public void detach(IObserver o) {}
+    public void detach(IObserver o) {
+    	if (o instanceof User) {
+            User user = (User) o;
+            
+            // Rimuove la ProjectMembership in cui l'ID dell'utente corrisponde a quello passato
+            memberships.removeIf(pm -> pm.getUser().getId() == user.getId());
+        }
+    }
 
     @Override
     public void notifyObservers(String message) {

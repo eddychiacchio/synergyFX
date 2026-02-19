@@ -11,6 +11,12 @@ public class ProjectMembership implements Serializable {
 
     // Costruttore vuoto (utile per serializzazione)
     public ProjectMembership() {}
+    
+    public ProjectMembership(Project project, User user) {
+        this.project = project;
+        this.user = user;
+        this.isAdmin = false; // Di base, chi viene aggiunto non è subito admin
+    }
 
     // Getters e Setters
     public Project getProject() { return project; }

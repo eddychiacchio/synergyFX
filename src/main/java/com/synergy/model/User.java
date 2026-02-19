@@ -4,18 +4,26 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// Implementa IObserver
+import com.synergy.pattern.observer.IObserver;
+
+// PATTERN OBSERVER: La classe User rappresenta un "Osservatore" (Observer).
+// implementa IObserver, il che significa che può "ascoltare" e ricevere notifiche dai Progetti.
+
 public class User implements Serializable, IObserver {
+
+    // ID di serializzazione
     private static final long serialVersionUID = 1L;
 
+    // attributi base dell'utente
     private int id;
     private String name;
     private String email;
     private String password;
     
-    // Lista delle notifiche ricevute
+    // lista privata per memorizzare lo storico delle notifiche ricevute dall'utente
     private List<String> notifications = new ArrayList<>();
 
+    // costruttore per creare un nuovo utente
     public User(int id, String name, String email, String password) {
         this.id = id;
         this.name = name;
@@ -23,25 +31,31 @@ public class User implements Serializable, IObserver {
         this.password = password;
     }
 
-    // --- METODO OBSERVER ---
+    // METODO OBSERVER 
+    // questo è il metodo richiesto dall'interfaccia IObserver.
+    // viene chiamato in automatico (ad esempio dal ProjectController) quando c'è una novità.
     @Override
     public void update(String message) {
-        // Aggiunge la notifica in cima alla lista
+        
+        // aggiunge la stringa di notifica ricevuta in cima alla lista (indice 0), 
+        // così la più recente sarà la prima ad essere mostrata nell'interfaccia.
         notifications.add(0, message);
     }
     
-    // Metodo per leggere le notifiche
+    // metodo per recuperare e leggere tutte le notifiche dell'utente
     public List<String> getNotifications() {
+
+        // controllo di sicurezza: se per via della deserializzazione la lista è null, ne crea una vuota
         if(notifications == null) notifications = new ArrayList<>();
         return notifications;
     }
     
-    // Metodo per pulire le notifiche (opzionale)
+    // metodo per svuotare la lista delle notifiche
     public void clearNotifications() {
         notifications.clear();
     }
 
-    // --- GETTERS & SETTERS STANDARD ---
+    // getter e setter 
     public int getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }

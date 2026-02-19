@@ -2,12 +2,13 @@ package com.synergy.util;
 
 import com.synergy.model.User;
 
+//classe che gestisce la sessione di un utente
 public class SessionManager {
     
     // Istanza statica unica (Singleton Pattern)
     private static SessionManager instance;
     
-    // L'utente attualmente loggato
+    // variabile che manterrà in memoria l'utente loggato
     private User currentUser;
 
     // Costruttore privato per impedire 'new SessionManager()'
@@ -15,6 +16,7 @@ public class SessionManager {
 
     // Metodo per ottenere l'istanza
     public static SessionManager getInstance() {
+    	// Se non è mai stata chiesta prima (è null), allora la crea
         if (instance == null) {
             instance = new SessionManager();
         }
@@ -31,7 +33,7 @@ public class SessionManager {
         this.currentUser = null;
     }
 
-    // Recupera l'utente corrente
+    //restituisce l'utente attualmente loggato
     public User getCurrentUser() {
         return currentUser;
     }

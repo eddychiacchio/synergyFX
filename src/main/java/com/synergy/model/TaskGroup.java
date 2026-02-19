@@ -6,7 +6,6 @@ import java.util.List;
 public class TaskGroup extends Activity {
     private static final long serialVersionUID = 1L;
 
-    // La lista dei figli (che possono essere Task o altri Gruppi)
     private List<Activity> children = new ArrayList<>();
 
     public TaskGroup(int id, String title, PriorityLevel priority) {
